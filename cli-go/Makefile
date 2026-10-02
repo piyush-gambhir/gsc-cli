@@ -1,0 +1,34 @@
+BINARY := gsc
+MODULE := github.com/piyush-gambhir/gsc-cli/cli-go
+VERSION ?= dev
+COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
+DATE ?= $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+# Built-in OAuth client for one-command login. Never commit these values:
+# export them, or put them in the untracked cli-go/.env.local as
+#   GSC_OAUTH_CLIENT_ID=...
+#   GSC_OAUTH_CLIENT_SECRET=...
+-include .env.local
+GSC_OAUTH_CLIENT_ID ?=
+GSC_OAUTH_CLIENT_SECRET ?=
+
+LDFLAGS := -s -w -X $(MODULE)/internal/build.Version=$(VERSION) -X $(MODULE)/internal/build.Commit=$(COMMIT) -X $(MODULE)/internal/build.Date=$(DATE) \
+	-X $(MODULE)/internal/auth.BuiltinClientID=$(GSC_OAUTH_CLIENT_ID) -X $(MODULE)/internal/auth.BuiltinClientSecret=$(GSC_OAUTH_CLIENT_SECRET)
+INSTALL_DIR ?= $(shell go env GOPATH)/bin
+
+.PHONY: build install test vet fmt tidy docs
+build:
+	go build -ldflags "$(LDFLAGS)" -o bin/$(BINARY) .
+install:
+	mkdir -p "$(INSTALL_DIR)"
+	go build -ldflags "$(LDFLAGS)" -o "$(INSTALL_DIR)/$(BINARY)$(shell go env GOEXE)" .
+test:
+	go test -race -count=1 ./...
+vet:
+	go vet ./...
+fmt:
+	gofmt -w .
+tidy:
+	go mod tidy
+docs:
+	go run ./tools/gendocs > ../docs/commands.md
