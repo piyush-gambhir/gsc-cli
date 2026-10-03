@@ -66,7 +66,6 @@ type Config struct {
 	Profiles       map[string]Profile `yaml:"profiles"`
 }
 
-// Path returns the config file path: GSC_CONFIG, else $XDG_CONFIG_HOME/gsc-cli/config.yaml.
 // DefaultPath is the configuration path when neither GSC_CONFIG nor
 // XDG_CONFIG_HOME is set.
 func DefaultPath() (string, error) {
@@ -77,6 +76,7 @@ func DefaultPath() (string, error) {
 	return filepath.Join(home, ".config", "gsc-cli", "config.yaml"), nil
 }
 
+// Path returns the config file path: GSC_CONFIG, else $XDG_CONFIG_HOME/gsc-cli/config.yaml.
 func Path() (string, error) {
 	if path := os.Getenv("GSC_CONFIG"); path != "" {
 		return path, nil
