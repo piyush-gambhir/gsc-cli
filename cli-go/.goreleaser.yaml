@@ -23,7 +23,16 @@ archives:
     files:
       - LICENSE
       - README.md
+sboms:
+  - artifacts: archive
 checksum:
   name_template: checksums.txt
+release:
+  # The release workflow publishes the draft after attesting the artifacts, so
+  # the release is complete when it becomes visible (and immutable).
+  draft: true
+  replace_existing_draft: true
 changelog:
   sort: asc
+  filters:
+    exclude: ['^docs:', '^test:', '^ci:', '^chore:']

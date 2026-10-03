@@ -304,7 +304,7 @@ func (c *Client) DeleteSite(ctx context.Context, site string) error {
 	return err
 }
 
-// Sitemaps are returned as decoded JSON objects so new or legacy fields
+// ListSitemaps returns sitemaps as decoded JSON objects so new or legacy fields
 // (and int64 counters encoded as strings) survive unchanged.
 func (c *Client) ListSitemaps(ctx context.Context, site, sitemapIndex string) ([]map[string]any, error) {
 	var q url.Values

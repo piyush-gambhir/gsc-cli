@@ -11,6 +11,7 @@ with Google.
 [![CI](https://github.com/piyush-gambhir/gsc-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/piyush-gambhir/gsc-cli/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/piyush-gambhir/gsc-cli)](https://github.com/piyush-gambhir/gsc-cli/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/piyush-gambhir/gsc-cli/badge)](https://scorecard.dev/viewer/?uri=github.com/piyush-gambhir/gsc-cli)
 
 ## Install
 
@@ -34,6 +35,15 @@ make install          # $(go env GOPATH)/bin/gsc, or INSTALL_DIR=...
 ```
 
 Source builds have no built-in OAuth client unless you provide one (see [docs/auth.md](docs/auth.md)).
+
+### Verify a download
+
+Releases are immutable once published and ship SBOMs plus signed build-provenance attestations. To confirm an
+archive was built by this repository's release workflow:
+
+```bash
+gh attestation verify gsc-cli_darwin_arm64.tar.gz --repo piyush-gambhir/gsc-cli
+```
 
 ## Quick start
 

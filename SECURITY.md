@@ -18,7 +18,10 @@ How credentials are handled:
   confidential; it is injected at release time and never committed.
 
 Remote writes (`sites add/remove`, `sitemaps submit/delete`, and non-read `gsc api` calls) are blocked by
-`--read-only`, as are local credential changes and self-update. Release checksums detect corrupted or
-mismatched downloads; they are not a separate publisher signature.
+`--read-only`, as are local credential changes and self-update.
+
+Releases are immutable once published and include SBOMs and signed build-provenance attestations; verify an
+archive with `gh attestation verify <archive> --repo piyush-gambhir/gsc-cli`. `gsc update` and `install.sh`
+also check SHA-256 checksums.
 
 Google controls the upstream APIs. Report Google service vulnerabilities through Google's programs.

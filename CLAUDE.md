@@ -16,3 +16,5 @@ Use `gsc --help` and `docs/commands.md` for current flags. See `gsc/SKILL.md` fo
 - Preserve stdout as data and stderr as diagnostics. No automatic retries outside `export --retry`. Never
   present `all` data as final, never sum query rows as totals, never call URL Inspection a live test.
 - Document user-visible changes (README, docs, skill) and regenerate `docs/commands.md` when flags change.
+- Releases: bump `cli-go/VERSION` in a pull request; merging to `main` tags and publishes it (see
+  CONTRIBUTING.md). Never push release tags by hand. `main` requires pull requests and passing checks.

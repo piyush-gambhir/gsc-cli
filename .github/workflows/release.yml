@@ -1,33 +1,102 @@
 name: Release
+# Publishing is driven by cli-go/VERSION: merging a version change into main
+# tags vX.Y.Z on the merge commit, builds with GoReleaser (archives, checksums,
+# SBOMs), attests build provenance, and only then publishes the release. A
+# failed run can be rerun from the Actions tab; an already published version
+# is skipped.
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+    paths: [cli-go/VERSION]
+  workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 concurrency:
-  group: release-${{ github.ref }}
+  group: release
   cancel-in-progress: false
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the tag and the release
+      id-token: write # sign build-provenance attestations
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Resolve version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(tr -d '[:space:]' < cli-go/VERSION)"
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "cli-go/VERSION must be a semantic version such as 0.2.0, got '$version'" >&2
+            exit 1
+          fi
+          tag="v$version"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          draft="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null || true)"
+          if [ "$draft" = "false" ]; then
+            echo "$tag is already published; nothing to do."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          existing="$(git rev-parse -q --verify "refs/tags/$tag^{commit}" || true)"
+          if [ -n "$existing" ] && [ "$existing" != "$GITHUB_SHA" ]; then
+            echo "$tag already points at $existing, not $GITHUB_SHA; bump cli-go/VERSION instead" >&2
+            exit 1
+          fi
+          echo "publish=true" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        if: steps.version.outputs.publish == 'true'
         with:
           go-version-file: cli-go/go.mod
           cache-dependency-path: cli-go/go.sum
-      - run: go test -race ./... && go vet ./...
+      - name: Test
+        if: steps.version.outputs.publish == 'true'
         working-directory: cli-go
-      - uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        run: go vet ./... && go test -race -count=1 ./...
+      - name: Vulnerability scan
+        if: steps.version.outputs.publish == 'true'
+        working-directory: cli-go
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
+      - name: Tag the release commit
+        if: steps.version.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA" >/dev/null
+            git tag "$TAG" "$GITHUB_SHA"
+          fi
+      - uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        if: steps.version.outputs.publish == 'true'
+        with:
+          syft-version: v1.54.0
+      - name: Build and upload a draft release
+        if: steps.version.outputs.publish == 'true'
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           distribution: goreleaser
           version: v2.18.2
           args: release --clean --config cli-go/.goreleaser.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Built-in OAuth client (Desktop app) for one-command login; see docs/auth.md.
+          # Built-in OAuth client for one-command login; see docs/auth.md. Empty until the secrets exist.
           GSC_OAUTH_CLIENT_ID: ${{ secrets.GSC_OAUTH_CLIENT_ID }}
           GSC_OAUTH_CLIENT_SECRET: ${{ secrets.GSC_OAUTH_CLIENT_SECRET }}
+      - name: Attest build provenance
+        if: steps.version.outputs.publish == 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-checksums: dist/checksums.txt
+      - name: Publish the release
+        if: steps.version.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest

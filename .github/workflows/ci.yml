@@ -5,6 +5,9 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   test:
     strategy:
@@ -26,9 +29,15 @@ jobs:
           cache-dependency-path: cli-go/go.sum
       - run: test -z "$(gofmt -l .)"
       - run: go vet ./...
+      - name: Staticcheck
+        if: matrix.os == 'ubuntu-latest'
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 -checks=all,-ST1000,-ST1003,-ST1005 ./...
+      - name: Vulnerability scan
+        if: matrix.os == 'ubuntu-latest'
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
       - run: go test -race -count=1 ./...
       - run: go build ./...
-      - name: Verify generated command docs
+      - name: Verify generated docs
         run: |
           go run ./tools/gendocs > ../docs/commands.md
           git diff --exit-code -- ../docs/commands.md
@@ -48,6 +57,9 @@ jobs:
         with:
           go-version-file: cli-go/go.mod
           cache-dependency-path: cli-go/go.sum
+      - uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          syft-version: v1.54.0
       - uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           distribution: goreleaser

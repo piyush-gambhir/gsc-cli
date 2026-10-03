@@ -33,7 +33,17 @@ workflows.
 
 ## Releases
 
-Run `goreleaser check --config cli-go/.goreleaser.yaml`, run CI, set `cli-go/VERSION`, and push a signed
-version tag. The release workflow reads the built-in OAuth client from the `GSC_OAUTH_CLIENT_ID` and
-`GSC_OAUTH_CLIENT_SECRET` repository secrets (see `docs/auth.md`). A local packaging check is
-`goreleaser release --snapshot --clean --skip=publish --config cli-go/.goreleaser.yaml`.
+To release, change `cli-go/VERSION` in a pull request. When it merges into `main`, the release workflow tags
+`vX.Y.Z` on the merge commit, runs the tests and `govulncheck`, builds with GoReleaser (archives, checksums,
+SBOMs), attests build provenance, and only then publishes the release. Published releases are immutable, so
+a mistake needs a new version. Rerun a failed release from the Actions tab (Release, Run workflow); a
+version that is already published is skipped. Do not push tags by hand. Release builds read the built-in
+OAuth client from the `GSC_OAUTH_CLIENT_ID` and `GSC_OAUTH_CLIENT_SECRET` repository secrets (see
+`docs/auth.md`). After changing `.goreleaser.yaml`, run `goreleaser check --config cli-go/.goreleaser.yaml`;
+a local packaging check is `goreleaser release --snapshot --clean --skip=publish --config cli-go/.goreleaser.yaml`
+(SBOMs need Syft installed).
+
+`main` is protected: changes land through pull requests (squash or rebase) with signed commits, linear
+history, and passing CI (tests on Linux, macOS, and Windows, staticcheck, govulncheck, the release check) and
+CodeQL. Dependabot minor and patch updates merge automatically once those checks pass; major updates wait for
+review. Release tags cannot be moved or deleted.
