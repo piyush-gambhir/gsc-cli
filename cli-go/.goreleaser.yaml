@@ -32,6 +32,8 @@ release:
   # the release is complete when it becomes visible (and immutable).
   draft: true
   replace_existing_draft: true
+  # Versions with a suffix (v1.0.0-rc.1) are published as pre-releases.
+  prerelease: auto
 changelog:
   sort: asc
   filters:

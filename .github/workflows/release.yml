@@ -2,8 +2,8 @@ name: Release
 # Publishing is driven by cli-go/VERSION: merging a version change into main
 # tags vX.Y.Z on the merge commit, builds with GoReleaser (archives, checksums,
 # SBOMs), attests build provenance, and only then publishes the release. A
-# failed run can be rerun from the Actions tab; an already published version
-# is skipped.
+# failed release is recovered by re-running that original run (Re-run jobs),
+# which keeps its commit; an already published version is skipped.
 on:
   push:
     branches: [main]
@@ -16,6 +16,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release:
+    # Releases only ever come from protected main, including manual reruns.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write # create the tag and the release
@@ -99,4 +101,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
-        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
+        run: |
+          # Mark it latest only when it is the newest stable version, so a retried
+          # older release or a pre-release never replaces what install.sh and
+          # update download.
+          latest=false
+          case "$TAG" in
+            *-*) ;;
+            *)
+              current="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name 2>/dev/null || true)"
+              newest="$(printf '%s\n%s\n' "${current#v}" "${TAG#v}" | sort -V | tail -n 1)"
+              if [ -z "$current" ] || [ "$newest" = "${TAG#v}" ]; then latest=true; fi
+              ;;
+          esac
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest="$latest"
