@@ -30,6 +30,7 @@ checksum:
 release:
   # The release workflow publishes the draft after attesting the artifacts, so
   # the release is complete when it becomes visible (and immutable).
+  name_template: "Search Console CLI {{ .Tag }}"
   draft: true
   replace_existing_draft: true
   # Versions with a suffix (v1.0.0-rc.1) are published as pre-releases.
