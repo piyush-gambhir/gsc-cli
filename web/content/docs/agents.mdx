@@ -1,0 +1,75 @@
+---
+title: Agents
+description: Run gsc from coding agents with JSON output, structured errors, read-only mode, dry runs, and the Search Console rules an agent must not get wrong.
+---
+
+`gsc` is built for coding agents as much as for people. Any agent or harness that can run shell commands
+can use it; nothing else is needed.
+
+## Ground rules
+
+- Run commands with `-o json --no-input`. Data is on stdout; notes and structured errors are on stderr.
+- Use `--read-only` unless the user asked for a change. It blocks every command that changes Search
+  Console, local credentials, or the binary itself. `query` and `inspect` send POST requests but only
+  read, so they still work.
+- Run writes (`sites add`, `sites remove`, `sitemaps submit`, `sitemaps delete`) only when the user asked,
+  and with `--dry-run` first to show the request. Destructive commands also need `--yes` under
+  `--no-input`; pass it only for the exact change the user asked for.
+- Check `gsc auth status -o json` first; it reads local configuration only. If nothing is logged in, ask
+  the user to run `gsc auth login`. Never invent credentials. In CI, `GSC_CREDENTIALS` or
+  `GSC_ACCESS_TOKEN` may already be set.
+
+```bash
+# A safe, non-interactive read for an agent
+gsc --read-only top queries --last 28d --limit 20 -o json --no-input
+```
+
+## Discover commands
+
+`gsc --help` and `gsc COMMAND --help` list every command and flag, and the
+[command reference](/docs/reference/commands) has all of them on one page. For an API method without a
+dedicated command, `gsc api METHOD PATH` sends an authenticated request with the same redaction and error
+handling. `GET` and the two read-only `POST`s (`searchAnalytics/query` and `urlInspection/index:inspect`)
+count as reads; every other request is a write, blocked by `--read-only` and printed instead of sent with
+`--dry-run`.
+
+## Automation flags
+
+| Flag | Environment | Effect |
+| --- | --- | --- |
+| `--read-only` | `GSC_READ_ONLY=1` | Blocks remote writes, local credential changes, and self-update |
+| `--no-input` | `GSC_NO_INPUT=1` | Never prompts or opens a browser; commands fail instead |
+| `--dry-run` | | Prints write requests and sends nothing |
+| `--yes` | | Confirms destructive commands without a prompt |
+| `--quiet` | `GSC_QUIET=1` | Drops informational notes from stderr |
+| `--verbose` | `GSC_VERBOSE=1` | Logs method, URL, and status to stderr (never tokens or bodies) |
+| `--site`, `-s` | `GSC_SITE` | Property for this command |
+| `--profile` | `GSC_PROFILE` | Saved profile for this command |
+
+Agents never see the update notice: its once-a-day GitHub check runs only when stderr is a terminal, and
+`GSC_NO_UPDATE_NOTIFIER=1` turns it off everywhere. `gsc update --check -o json` reports the current and
+latest versions.
+
+## Reporting results honestly
+
+- Take totals from `gsc performance`. Never sum query or page rows into site totals: anonymized queries
+  are withheld and at most 50,000 rows per day are exposed.
+- Run `gsc freshness` before trusting the last few days. Never present `--data-state all` numbers as
+  final.
+- `complete: true` only means pagination ended. With `--compare`, `null` means a row was not returned
+  for that period; treat it as unknown, not zero.
+- `gsc inspect` reports Google's indexed version, not a live test, and cannot request indexing. It costs
+  quota (2,000 per property per day), so inspect only the URLs you need and use `--max`.
+- Search Analytics has unpublished load quotas. Prefer narrower date ranges, avoid grouping by page and
+  query together over long ranges, and do not retry quota errors in a loop.
+
+[Reading the data](/docs/data) covers each of these in detail.
+
+## Agent skill and LLM files
+
+- The agent skill lives at
+  [`gsc/SKILL.md`](https://github.com/piyush-gambhir/gsc-cli/blob/main/gsc/SKILL.md). Copy it into
+  your agent's skills directory.
+- [`llms.txt`](https://projects.piyushgambhir.com/gsc-cli/llms.txt) indexes these docs, and
+  [`llms-full.txt`](https://projects.piyushgambhir.com/gsc-cli/llms-full.txt) contains all of them,
+  including the full command reference.

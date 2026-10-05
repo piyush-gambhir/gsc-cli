@@ -8,6 +8,9 @@ Designed for people and coding agents: named profiles, table/JSON/YAML/CSV outpu
 on stdout and diagnostics on stderr, and a single cross-platform binary. Independent project; not affiliated
 with Google.
 
+**Docs:** [projects.piyushgambhir.com/gsc-cli](https://projects.piyushgambhir.com/gsc-cli)
+([llms.txt](https://projects.piyushgambhir.com/gsc-cli/llms.txt) for agents)
+
 [![CI](https://github.com/piyush-gambhir/gsc-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/piyush-gambhir/gsc-cli/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/piyush-gambhir/gsc-cli)](https://github.com/piyush-gambhir/gsc-cli/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -193,6 +196,10 @@ make vet
 make docs       # regenerate docs/commands.md
 ```
 
-Layout follows the CLI suite: Go in `cli-go/`, docs in `docs/`, agent skill in `gsc/`, workflows in
-`.github/`. See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [CLAUDE.md](CLAUDE.md),
-[PLAN.md](PLAN.md), and [RESEARCH.md](RESEARCH.md). MIT licensed.
+The docs site lives in `web/` (Next.js and Fumadocs, exported as static files). Its command reference and API
+coverage pages are generated from `docs/` at build time. `cd web && pnpm install && pnpm dev` runs it locally;
+`scripts/deploy-docs.sh` deploys it.
+
+Layout follows the CLI suite: Go in `cli-go/`, docs in `docs/`, agent skill in `gsc/`, docs site in `web/`,
+workflows in `.github/`. See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md),
+[CLAUDE.md](CLAUDE.md), [PLAN.md](PLAN.md), and [RESEARCH.md](RESEARCH.md). MIT licensed.

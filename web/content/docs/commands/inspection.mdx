@@ -1,0 +1,39 @@
+---
+title: URL Inspection
+description: Use gsc inspect to see Google's indexed view of one URL or a paced batch, within the URL Inspection quota.
+---
+
+```bash
+gsc inspect https://www.example.com/pricing
+gsc inspect --file urls.txt -o json
+cat urls.txt | gsc inspect --file - --max 200
+```
+
+`gsc inspect` calls the URL Inspection API for each URL. The table shows the verdict, coverage state,
+indexing state, last crawl time, page fetch state, robots.txt state, Google-selected and user-declared
+canonicals, the crawler used, and rich results. JSON returns Google's full result for each URL.
+
+<Callout type="warn">
+  URL Inspection reports the version Google has **indexed**, as last crawled. It is not a live test of
+  the page as it is now, and the API cannot request indexing.
+</Callout>
+
+## Batches and quota
+
+Google allows 2,000 inspections per property per day and 600 per minute. `gsc inspect`:
+
+- reads URLs from arguments, or from `--file` (one per line, `-` for stdin), and skips duplicates;
+- inspects at most `--max` URLs (default 2,000, the daily quota) and warns when it drops the rest;
+- pauses `--interval` between inspections (default `120ms`, which stays under 600 per minute);
+- records an error for a single URL and moves on, but stops cleanly when a quota is reached, keeping the
+  results it has.
+
+Inspect only the URLs you need: every inspection counts against the property's quota.
+
+## Language
+
+`--language` sets the language of issue messages as a BCP 47 code (default `en-US`):
+
+```bash
+gsc inspect https://www.example.com/de/preise --language de-DE
+```

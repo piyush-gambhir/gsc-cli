@@ -27,9 +27,24 @@ resolved review threads, and passing Go CI and CodeQL checks.
 ## Dependency maintenance
 
 Prefer current stable releases, pinned to exact module versions and immutable GitHub Action commit SHAs.
-Dependabot checks daily and groups minor and patch updates per ecosystem. Run `go get -u -t ./...` and
-`go mod tidy` inside `cli-go`, then run platform CI. Check the GoReleaser version in both CI and release
-workflows.
+Dependabot checks Go modules and Actions daily and the site's npm packages weekly, and groups minor and patch
+updates per ecosystem. Run `go get -u -t ./...` and `go mod tidy` inside `cli-go`, then run platform CI. Check
+the GoReleaser version in both CI and release workflows.
+
+## Docs site
+
+`web/` holds the site at [projects.piyushgambhir.com/gsc-cli](https://projects.piyushgambhir.com/gsc-cli)
+(Next.js static export with Fumadocs, served by a Cloudflare Worker). Guide pages are in `web/content/docs/`;
+the command reference and API coverage pages are generated from `docs/` during every build. CI type-checks and
+builds the site, audits production dependencies, and checks the search index; Dependabot updates its npm
+dependencies weekly.
+
+```bash
+(cd web && pnpm install && pnpm dev)   # http://localhost:3000/gsc-cli
+scripts/deploy-docs.sh                 # from the repository root: build and deploy; needs `wrangler login`
+```
+
+Deploy from an up-to-date `main` after docs changes merge. Deploys are manual.
 
 ## Releases
 

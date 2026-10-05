@@ -1,0 +1,66 @@
+---
+title: Insights
+description: Find striking-distance queries, low CTR for the position, cannibalization, decliners, and new or lost queries with gsc insights, computed locally with their thresholds shown.
+---
+
+Each insight runs ordinary Search Analytics queries and computes the result locally. The thresholds it
+used are printed on stderr and included in JSON output, along with a note on how the result was
+computed, and every threshold has a flag. Results describe the rows Google exposes; anonymized queries
+are never included.
+
+All insights take `--last` (default `28d`), `--start`, `--end`, `--type`, `--filter`, `--data-state`,
+`--aggregation`, and `--limit`.
+
+## Striking distance
+
+```bash
+gsc insights striking-distance --last 28d
+gsc insights striking-distance --min-position 8 --max-position 15 --min-impressions 500
+```
+
+Queries whose average position is between `--min-position` (default 4) and `--max-position` (default
+20), with at least `--min-impressions` (default 100), sorted by impressions. Average position is per
+query across all pages.
+
+## Low CTR
+
+```bash
+gsc insights low-ctr --factor 0.5 --min-impressions 200
+```
+
+Queries whose CTR is below `--factor` (default 0.5) of this site's median CTR for the same position
+bucket. Buckets are positions 1 to 10 one by one (rounded), then 11 to 20, then 21 and beyond; a
+bucket with fewer than three qualifying queries is skipped. `missed_clicks_estimate` is impressions times the gap to the
+median: an estimate, not a forecast.
+
+## Cannibalization
+
+```bash
+gsc insights cannibalization --min-share 0.2
+```
+
+Queries with at least `--min-impressions` (default 100) where two or more pages each have at least
+`--min-share` (default 0.1) of the query's impressions. Rows list one competing page each, grouped by
+query, with that page's `share`.
+
+## Decliners
+
+```bash
+gsc insights decliners --by page --compare yoy
+```
+
+Queries (or pages with `--by page`) that lost the most clicks against the `--compare` period (`previous`
+by default, or `yoy`), among rows with at least `--min-clicks` (default 5) in the comparison period. Only
+rows returned in both periods count: a row missing from one period is left out rather than treated as
+zero.
+
+## New and lost queries
+
+```bash
+gsc insights new-queries --compare previous
+gsc insights lost-queries --by page
+```
+
+`new-queries` lists rows returned now but not in the comparison period; `lost-queries` lists the reverse.
+Both describe exposure within the fetched rows, not rankings: a query can drop out of the returned rows
+without losing its position.

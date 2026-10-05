@@ -1,0 +1,50 @@
+---
+title: Properties & sitemaps
+description: List, add, and remove Google Search Console properties, pick a default, and list, check, submit, and delete sitemaps with gsc.
+---
+
+## Properties
+
+```bash
+gsc sites list                              # properties you can access and your permission level
+gsc sites get                               # the default property (or name one)
+gsc sites use sc-domain:example.com         # set the profile's default property
+gsc sites add https://www.example.com/      # add to your list (write)
+gsc sites remove https://www.example.com/   # remove from your list (write, asks first)
+```
+
+A property is a domain property (`sc-domain:example.com`) or a URL prefix (`https://www.example.com/`),
+used exactly as `sites list` prints it. Commands pick it from `--site`, then `GSC_SITE`, then the
+profile's default. A bare host such as `example.com` is matched against your properties: a domain
+property wins, otherwise a single URL-prefix match, and an ambiguous match is an error that lists the
+candidates.
+
+`sites use` saves an exact identifier without a network call; a bare host costs one `sites.list` call.
+`sites add` needs an exact identifier and only adds the property to your list: it does not verify
+ownership, which you complete in Search Console.
+
+## Sitemaps
+
+```bash
+gsc sitemaps list                                               # submitted sitemaps
+gsc sitemaps list --index https://www.example.com/sitemap-index.xml
+gsc sitemaps get https://www.example.com/sitemap.xml            # status, errors, and warnings
+gsc sitemaps submit https://www.example.com/sitemap.xml         # write
+gsc sitemaps delete https://www.example.com/old-sitemap.xml     # write, asks first
+```
+
+`sitemaps delete` removes the sitemap from the report; Google may still crawl it.
+
+## Writes
+
+`sites add`, `sites remove`, `sitemaps submit`, and `sitemaps delete` change Search Console, so:
+
+- `--dry-run` prints the request and sends nothing;
+- `--read-only` blocks them;
+- `sites remove` and `sitemaps delete` ask for confirmation, or need `--yes` under `--no-input`;
+- a profile logged in with `--scope readonly` stops them early with a message, because the read-only
+  scope cannot write.
+
+```bash
+gsc sitemaps submit https://www.example.com/sitemap.xml --dry-run
+```

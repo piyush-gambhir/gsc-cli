@@ -1,0 +1,71 @@
+---
+title: Quick start
+description: Sign in, pick a property, and run your first Google Search Console commands with gsc.
+---
+
+## 1. Log in
+
+```bash
+gsc auth login
+```
+
+Your browser opens Google's consent page. Approve access, and `gsc` saves the login in your OS keychain,
+lists your properties, and picks a default site: your only property, the one you choose, or the first
+domain property under `--no-input`. On a machine without a browser, use `gsc auth login --no-browser`;
+[Authentication](/docs/authentication) covers service accounts and CI.
+
+## 2. Check your properties
+
+```bash
+gsc sites list                          # properties and your permission level
+gsc sites use sc-domain:example.com     # change the default property
+gsc auth status                         # the active credential and property; no network call
+```
+
+Properties are either domain properties (`sc-domain:example.com`) or URL prefixes
+(`https://www.example.com/`), exactly as `sites list` prints them. `-s` picks one for a single command,
+and a bare host such as `example.com` is matched against your properties: a domain property wins,
+otherwise a single URL-prefix match.
+
+## 3. Read your performance
+
+```bash
+gsc freshness                                    # the latest final and preliminary dates
+gsc performance --last 28d --compare previous    # totals, and the change from the 28 days before
+gsc top queries --last 3m --limit 50
+gsc trend --last 16m --by month
+```
+
+## 4. Dig into the rows
+
+```bash
+gsc query -d query -d page --filter 'page =~ ^https://www.example.com/blog/' --limit 5000 -o csv > blog.csv
+gsc insights striking-distance --last 28d
+```
+
+## 5. Check pages and sitemaps
+
+```bash
+gsc inspect https://www.example.com/pricing
+gsc sitemaps list
+gsc sitemaps submit https://www.example.com/sitemap.xml --dry-run   # see the request first
+```
+
+<Callout type="info">
+  Commands use final data by default, and the last two or three days are usually still preliminary,
+  so `--last 28d` ends at the latest final day. `gsc freshness` shows where that is, and
+  [Reading the data](/docs/data) explains the rest.
+</Callout>
+
+## Discovering commands
+
+```bash
+gsc --help
+gsc query --help
+gsc doctor        # configuration, credentials, keychain, scopes, and PATH
+```
+
+<Cards>
+  <Card title="Output formats" href="/docs/output-formats" description="Table, JSON, YAML, CSV, and the stdout and stderr contract." />
+  <Card title="Commands" href="/docs/commands" description="Every command group, with examples." />
+</Cards>

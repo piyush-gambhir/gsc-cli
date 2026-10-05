@@ -1,0 +1,92 @@
+---
+title: Search performance
+description: Read Google Search Console performance with gsc, including totals, top queries and pages, trends, data freshness, and period comparisons.
+---
+
+```bash
+gsc performance --last 28d --compare previous   # totals, and the change from the 28 days before
+gsc top queries --last 3m --limit 50             # top rows for one dimension
+gsc trend --last 16m --by month                  # a time series
+gsc freshness                                    # the latest final and preliminary dates
+```
+
+## Totals
+
+`gsc performance` runs a query with no dimensions, so its clicks, impressions, CTR, and average position
+match the Performance report chart, anonymized queries included. Use it whenever you need site totals.
+
+```bash
+gsc performance --type discover --last 3m -o json
+gsc performance --filter 'page ~ /blog/' --compare yoy
+```
+
+## Top rows
+
+`gsc top` groups by one dimension and returns the top rows by clicks, 25 by default:
+
+```bash
+gsc top queries
+gsc top pages --limit 100
+gsc top countries                  # ISO 3166-1 alpha-3 codes, such as usa and ind
+gsc top devices
+gsc top appearance                 # search appearance types
+```
+
+`searchAppearance` cannot be grouped with other dimensions, so `top appearance` lists the values first.
+To break one down further, filter on it with `gsc query --filter 'searchAppearance = VALUE'`.
+
+## Trends
+
+`gsc trend` reports clicks, impressions, CTR, and position over time:
+
+```bash
+gsc trend --last 3m --by week
+gsc trend --by hour --last 2d              # hourly, preliminary data, last 10 days
+gsc trend --last 16m --by month --filter 'page ~ /blog/'
+```
+
+`--by date` (the default) and `--by hour` come from Google. `--by week` (ISO weeks) and `--by month` are
+rolled up locally from daily rows: clicks and impressions are summed, CTR is recomputed from the sums,
+and position is weighted by impressions. The output says so.
+
+## Freshness
+
+```bash
+gsc freshness
+gsc freshness --type news -o json
+```
+
+Two small date-grouped queries over the last 10 days, one for final data and one including preliminary
+data. Final data usually lags two to three days; check this before reading the last few days.
+
+## Periods and filters
+
+These flags work the same on `performance`, `top`, `trend`, `query`, `export`, and the insights:
+
+| Flag | Meaning |
+| --- | --- |
+| `--last` | `7d`, `28d` (default), `4w`, `3m`, `16m`: a window ending at the latest available date |
+| `--start`, `--end` | Inclusive dates, `YYYY-MM-DD`, in Pacific Time |
+| `--type` | `web` (default), `image`, `video`, `news`, `discover`, or `googleNews` |
+| `--filter` | `'DIM OP VALUE'`; repeat to AND. See [Search Analytics queries](/docs/commands/query#filters) |
+| `--data-state` | `final` (default), `all` (includes preliminary data), or `hourly_all` |
+| `--aggregation` | `auto`, `byPage`, `byProperty`, or `byNewsShowcasePanel` |
+
+## Comparisons
+
+`--compare previous` adds the period just before; `--compare yoy` adds the same dates a year earlier.
+It works on `performance`, `top`, and `query`:
+
+```bash
+gsc performance --compare yoy
+gsc top pages --compare previous --limit 50 -o json
+```
+
+Rows are joined on their dimension values and gain `_prev`, `_delta`, and `_pct` columns. A row missing
+from one period is `null`, not zero; CTR changes are in percentage points; percent change is `null` when
+the earlier value is zero.
+
+<Callout type="warn">
+  Never add query or page rows up into site totals; Google withholds anonymized queries and caps the
+  rows it returns. Use `gsc performance`. See [Reading the data](/docs/data).
+</Callout>

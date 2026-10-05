@@ -1,0 +1,53 @@
+---
+title: Introduction
+description: Meet Search Console CLI (gsc), an independent, unofficial open-source CLI for Google Search Console, built for people and coding agents.
+---
+
+**Search Console CLI** (`gsc`) is a command-line interface for **Google Search Console**. Sign in with
+your Google account, then read search performance, see how Google indexed your pages, manage sitemaps
+and properties, and export your data from your terminal.
+
+It is built for people and coding agents alike. Every command can print JSON, writes can be previewed
+with `--dry-run`, and `--read-only` blocks every change.
+
+<Callout type="info">
+  The binary is `gsc`. `gsc auth login` opens your browser once and keeps the login in your OS
+  keychain; access tokens refresh automatically after that.
+</Callout>
+
+## What it covers
+
+- **Search performance:** totals that match the Performance report, top queries, pages, countries,
+  devices, and search appearances, and trends by hour, day, week, or month.
+- **Every Search Analytics option:** seven dimensions, six search types, filters with regular
+  expressions, final, preliminary, and hourly data, and every row Google exposes, well past the web
+  UI's 1,000-row table.
+- **Comparisons:** any period against the one before it or the same dates a year earlier, with rows
+  missing from one period reported as `null`, not zero.
+- **URL Inspection:** Google's indexed view of one URL or a batch, paced under the quota.
+- **Sitemaps and properties:** list, check, submit, and delete sitemaps; list, add, and remove
+  properties.
+- **Bulk export:** day-by-day CSV or NDJSON files that resume after an interruption.
+- **Insights:** striking-distance queries, low CTR for the position, cannibalization, decliners, and
+  new and lost queries, computed locally with their thresholds printed.
+- **Anything else:** `gsc api` sends an authenticated request to any Search Console API method.
+
+Each of the 10 active Search Console API methods has a command. The
+[API coverage](/docs/reference/api-coverage) page maps them one by one. Search Console data has rules
+that are easy to miss, such as preliminary days, anonymized queries, and row caps;
+[Reading the data](/docs/data) explains them.
+
+## Next steps
+
+<Cards>
+  <Card title="Installation" href="/docs/installation" description="Install the prebuilt binary or build from source." />
+  <Card title="Authentication" href="/docs/authentication" description="Sign in with your browser, or use a service account or ADC." />
+  <Card title="Quick start" href="/docs/quickstart" description="Pick a property and run your first commands." />
+  <Card title="Agents" href="/docs/agents" description="JSON output, structured errors, and safety flags." />
+</Cards>
+
+<Callout type="info">
+  **Independent project.** Not affiliated with, endorsed by, or sponsored by Google. Google and Google
+  Search Console are trademarks of Google LLC, named here only to identify the service this tool works
+  with.
+</Callout>

@@ -1,0 +1,47 @@
+---
+title: Bulk export
+description: Export Google Search Console data day by day to CSV or NDJSON files with gsc export, and resume after an interruption.
+---
+
+```bash
+gsc export --last 16m -d query -d page --out ./gsc-export
+gsc export --start 2026-01-01 --end 2026-03-31 -d page --format ndjson --out ./q1
+```
+
+`gsc export` splits the range into days, as Google's extraction guide recommends, fetches every row Google
+exposes for each day, and writes one file per day (`2026-01-01.csv`, or `.ndjson` with
+`--format ndjson`) to the `--out` directory. Each file is written to a temporary file first and renamed
+into place, so an interrupted day never leaves a partial file behind.
+
+## Resuming
+
+`manifest.json` in the output directory records the request and the days already written. Run the same
+command again to pick up where it stopped.
+
+- Days after the latest final date, and days Google marks incomplete, are recorded as preliminary and
+  fetched again on the next run.
+- If the manifest was written for a different request (another property, dimensions, filters, data
+  state, or format), `gsc export` stops instead of overwriting it. Pass `--restart` to discard it, or
+  choose a new `--out` directory.
+
+## Pacing and retries
+
+Each day's fetch starts at least `--interval` (default `250ms`) after the previous one, to stay under the
+per-property quota; the pages within one day are fetched back to back.
+There are no automatic retries by default: an error stops the export, and rerunning resumes it.
+`--retry N` retries quota and server errors up to N times per day with backoff, logging each retry on
+stderr.
+
+## Options
+
+`export` takes the same dimensions, filters, search type, data state, and aggregation flags as
+[`gsc query`](/docs/commands/query). `--data-state final` is the default, so files hold final data
+unless you ask for preliminary days.
+
+`export` only writes the files you asked for and changes nothing in Search Console, so it also runs under
+`--read-only`.
+
+<Callout type="info">
+  Each day is capped by Google at 50,000 rows per search type, and anonymized queries are never
+  included. Totals come from `gsc performance`, not from summing exported rows.
+</Callout>

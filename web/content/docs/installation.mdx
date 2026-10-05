@@ -1,0 +1,100 @@
+---
+title: Installation
+description: Install Search Console CLI (gsc) from a checksum-verified prebuilt binary or build it from source.
+---
+
+## Install script (recommended)
+
+For macOS and Linux. The script downloads the latest release for your OS and architecture, checks its
+SHA-256 checksum, and installs `gsc` to `~/.local/bin`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/piyush-gambhir/gsc-cli/main/install.sh | sh
+```
+
+Pin a version or change the install directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/piyush-gambhir/gsc-cli/main/install.sh | VERSION=v0.1.1 sh
+curl -fsSL https://raw.githubusercontent.com/piyush-gambhir/gsc-cli/main/install.sh | INSTALL_DIR=/usr/local/bin sh
+```
+
+<Callout type="warn">
+  Ghostscript and Gambit Scheme also install a program named `gsc`. The installer warns when a different
+  `gsc` comes first on your `PATH`, and `gsc doctor` checks for it too.
+</Callout>
+
+## Download a release manually
+
+Each [GitHub release](https://github.com/piyush-gambhir/gsc-cli/releases) has
+`gsc-cli_<os>_<arch>.tar.gz` archives for `darwin` and `linux` (`amd64` or `arm64`) and
+`gsc-cli_windows_<arch>.zip` for Windows. Extract `gsc` and put it on your `PATH`. `checksums.txt`
+lists the SHA-256 of every archive.
+
+## Verify a download
+
+Releases are immutable once published. Every archive ships with an SBOM and a signed build-provenance
+attestation, so you can confirm it was built by the repository's release workflow:
+
+```bash
+gh attestation verify gsc-cli_darwin_arm64.tar.gz --repo piyush-gambhir/gsc-cli
+```
+
+## Build from source
+
+Requires Go 1.26 or later:
+
+```bash
+git clone https://github.com/piyush-gambhir/gsc-cli.git
+cd gsc-cli/cli-go
+make install    # installs to $(go env GOPATH)/bin, or INSTALL_DIR=...
+```
+
+<Callout type="info">
+  A source build has no built-in OAuth client, so `gsc auth login` needs your own
+  ([`--client-secret-file`](/docs/authentication#your-own-oauth-client), or `GSC_CLIENT_ID` and
+  `GSC_CLIENT_SECRET`). Service accounts, Application Default Credentials, and access tokens work as
+  usual. `gsc version -o json` reports `builtin_oauth_client`.
+</Callout>
+
+## Check and update
+
+```bash
+gsc version             # build info, plus the latest version from the last release check
+gsc doctor              # configuration, credentials, keychain, scopes, and PATH; no API calls
+gsc update --check      # is a newer release out? (-o json for scripts)
+gsc update              # asks, then installs it after SHA-256 verification
+```
+
+`gsc update` works on macOS, Linux, and Windows. It downloads the release archive for your platform,
+checks it against the release's `checksums.txt`, and replaces the running executable. On Windows the old
+executable is renamed to `gsc.exe.old` and deleted the next time `gsc` starts. `--yes` skips the
+question, and `--no-input` requires `--yes`. If the install directory is not writable, the update stops and
+the old binary keeps working: re-run with `sudo`, or reinstall with the install script into a directory you
+own. A `gsc` in a Go bin directory (`$GOBIN`, `$GOPATH/bin`, or `~/go/bin`) came from a source build, so
+`gsc update` tells you to run `git pull && make install` in your checkout instead of replacing it.
+`--read-only` blocks `gsc update` but still allows `gsc update --check`.
+
+### Update notice
+
+In an interactive terminal, `gsc` checks the github.com release page for a new release at most once a day
+(not the GitHub API, so its per-IP rate limit never applies). When one is out, it
+prints a notice on stderr after the command's output, at most once a day per version:
+
+```text
+A new version of gsc is available: v0.1.2 -> v0.1.3
+Update with: gsc update
+Release notes: https://github.com/piyush-gambhir/gsc-cli/releases/tag/v0.1.3
+```
+
+Only the one command a day that runs the check waits for its answer, at most 1 second after its output;
+every other command uses the cached answer and never waits. `gsc update` and `gsc update --check` store
+what they find in the same cache. The check never runs (no network, no output) when:
+
+- stderr is not a terminal (pipes, scripts, coding agents),
+- `CI` is set,
+- `--quiet` or `GSC_QUIET=1` is on,
+- `GSC_NO_UPDATE_NOTIFIER` or `NO_UPDATE_NOTIFIER` is set to any value, or
+- the command is `update`, `version`, `completion`, or `help`.
+
+To turn it off for good, add `export GSC_NO_UPDATE_NOTIFIER=1` to your shell profile.

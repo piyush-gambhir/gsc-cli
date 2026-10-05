@@ -1,0 +1,118 @@
+---
+title: Output formats
+description: Table, JSON, YAML, and CSV output in gsc, the stdout and stderr contract, the Search Analytics envelope, and structured errors.
+---
+
+## Formats
+
+`-o table` is the default. `-o json` and `-o yaml` work on every command that returns data, and `-o csv`
+works on row-shaped results such as Search Analytics, `top`, `trend`, insights, `inspect`, and
+`sites list`; other commands reject it with a message.
+
+```bash
+gsc sites list                            # table
+gsc top queries -o json                   # JSON for scripts and agents
+gsc query -d page --limit 5000 -o csv > pages.csv    # spreadsheet-ready
+```
+
+Tables show CTR as a percentage and positions to two decimals. JSON, YAML, and CSV keep the raw values:
+`ctr` is a ratio such as `0.0249`. In CSV, text starting with `=`, `+`, `-`, or `@` gets a leading
+apostrophe so a spreadsheet never runs a search query as a formula.
+
+## stdout and stderr
+
+Data goes to **stdout**. Notes, warnings, and errors go to **stderr**, so piping stdout always gives you
+clean data. `--quiet` drops informational notes, and `--verbose` logs each request's method, URL, and
+HTTP status to stderr (never tokens or bodies).
+
+## The Search Analytics envelope
+
+`query`, `performance`, `top`, and `trend` print an envelope in JSON and YAML, so the numbers carry what
+you need to interpret them:
+
+```json
+{
+  "site": "sc-domain:example.com",
+  "start": "2026-09-03",
+  "end": "2026-09-30",
+  "type": "web",
+  "data_state": "final",
+  "dimensions": ["query", "page"],
+  "aggregation": "byPage",
+  "first_incomplete_date": null,
+  "first_incomplete_hour": null,
+  "metadata_returned": false,
+  "row_count": 1000,
+  "complete": false,
+  "requests": 1,
+  "rollup": null,
+  "rows": [
+    { "query": "running shoes", "page": "https://example.com/shoes", "clicks": 120, "impressions": 4810, "ctr": 0.0249, "position": 7.42 }
+  ]
+}
+```
+
+- `start` and `end` are inclusive dates in Pacific Time, Search Console's timezone.
+- `complete` is about pagination only: `true` means every row Google exposes for the request was
+  fetched. It never means every query, because Google withholds anonymized queries.
+- `metadata_returned` says whether Google sent the `first_incomplete_date` or `first_incomplete_hour`
+  fields. Google sends them only for `--data-state all` with date grouping or `hourly_all` with hour
+  grouping, so `null` with `metadata_returned: false` means "not provided", not "complete".
+- `aggregation` is the aggregation Google reports it used. `requests` counts the API requests made.
+- `rollup` describes a local week or month rollup from `trend --by week|month`.
+
+## Comparisons
+
+With `--compare previous` or `--compare yoy`, `current` and `previous` each carry their own envelope
+fields, and every row adds `_prev`, `_delta`, and `_pct` columns:
+
+```json
+{
+  "mode": "previous",
+  "current": { "start": "2026-09-03", "end": "2026-09-30", "row_count": 500, "complete": false },
+  "previous": { "start": "2026-08-06", "end": "2026-09-02", "row_count": 500, "complete": false },
+  "dimensions": ["query"],
+  "note": "null means the row was not returned for that period (not zero); ctr_delta_pp is in percentage points",
+  "rows": [
+    { "query": "running shoes", "clicks": 120, "clicks_prev": null, "clicks_delta": null, "clicks_pct": null }
+  ]
+}
+```
+
+The example is abridged. A row missing from one period is `null`, never zero. `clicks_pct` and
+`impressions_pct` are `null` when the earlier value is zero, CTR changes are in percentage points
+(`ctr_delta_pp`), and position changes are absolute differences (`position_delta`).
+
+## Other commands
+
+- `freshness` prints `latest_final_date`, `latest_preliminary_date`, and `first_incomplete_date`.
+- Insights print the insight name, a `note` on how it was computed, the `thresholds` used, the source
+  queries, and the rows.
+- `inspect` prints `site`, `requested`, `inspected`, a `note`, and one entry per URL with Google's full
+  inspection result or that URL's error. `stopped_reason` appears when a quota or a rejected login
+  stopped the batch early.
+- `sites` and `sitemaps` commands keep Google's field names (`siteUrl`, `permissionLevel`).
+
+## Errors
+
+Every failure exits with status `1`. With `-o json` or `-o yaml`, stderr carries a structured error:
+
+```json
+{
+  "error": "Search Console API: User does not have sufficient permission for site 'sc-domain:example.com'. See also: https://support.google.com/webmasters/answer/2451999. (HTTP 403, forbidden). The signed-in identity lacks access to this property; check gsc sites list or add the user in Search Console > Settings > Users and permissions",
+  "reason": "forbidden",
+  "status": 403
+}
+```
+
+`reason` is Google's error reason when it sends one, and `retry_after` is added when Google sends a
+`Retry-After` header. The message ends with a hint for the common cases:
+
+| Situation | What to do |
+| --- | --- |
+| HTTP 401 | The access token was rejected; run `gsc auth login` |
+| HTTP 403, no permission for the property | Check `gsc sites list`, or add the user or service account in Search Console |
+| HTTP 403, API not enabled | Enable the Google Search Console API in the OAuth client's Google Cloud project |
+| Quota or rate limit (403 or 429) | Narrow the date range, avoid grouping by page and query together, and wait about 15 minutes. `gsc` never retries automatically |
+
+Tokens and client secrets never appear in errors or logs.

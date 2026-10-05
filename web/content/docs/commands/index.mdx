@@ -1,0 +1,62 @@
+---
+title: Overview
+description: The gsc command surface grouped by area, with the global flags every command accepts.
+---
+
+Every command has `-h`/`--help`, and every command that returns data accepts `-o json|yaml`, plus
+`-o csv` for row-shaped results. The [command reference](/docs/reference/commands) lists every flag;
+these pages show how the groups fit together.
+
+## Groups
+
+<Cards>
+  <Card title="Search performance" href="/docs/commands/performance" description="Totals, top rows, trends, freshness, and period comparisons." />
+  <Card title="Search Analytics queries" href="/docs/commands/query" description="Every API option: dimensions, filters, search types, and data states." />
+  <Card title="URL Inspection" href="/docs/commands/inspection" description="Google's indexed view of one URL or a paced batch." />
+  <Card title="Bulk export" href="/docs/commands/export" description="Day-by-day CSV or NDJSON files that resume after an interruption." />
+  <Card title="Insights" href="/docs/commands/insights" description="Striking distance, low CTR, cannibalization, and period changes." />
+  <Card title="Properties & sitemaps" href="/docs/commands/properties" description="List, add, and remove properties; list, submit, and delete sitemaps." />
+</Cards>
+
+## Global flags
+
+| Flag | Effect |
+| --- | --- |
+| `-s`, `--site` | Property: `sc-domain:example.com`, `https://www.example.com/`, or a bare host (or `GSC_SITE`) |
+| `--profile` | Saved profile (or `GSC_PROFILE`) |
+| `-o`, `--output` | `table` (default), `json`, `yaml`, or `csv` |
+| `--read-only` | Block remote writes, local credential changes, and self-update |
+| `--dry-run` | For write commands: print the request and send nothing |
+| `--yes` | Confirm destructive commands without a prompt |
+| `--no-input` | Never prompt or open a browser |
+| `-q`, `--quiet` / `-v`, `--verbose` | Fewer notes, or a log line per request, on stderr |
+| `--timeout` | HTTP request timeout (default `30s`) |
+| `--access-token`, `--credentials` | Credential overrides; prefer `GSC_ACCESS_TOKEN` or `GSC_CREDENTIALS` |
+
+The property comes from `--site`, then `GSC_SITE`, then the profile's default site (set at login or with
+`gsc sites use`).
+
+## Account and setup
+
+```bash
+gsc auth status                                   # also: login, list, use, logout, token
+gsc doctor --online                               # local checks plus one API call
+gsc update --check
+gsc completion zsh > "${fpath[1]}/_gsc"
+```
+
+## Any API method
+
+`gsc api` sends an authenticated request to the Search Console API, so a method Google adds later is
+usable the day it ships. `PATH` is relative to `https://searchconsole.googleapis.com` and must already
+be URL-escaped:
+
+```bash
+gsc api GET /webmasters/v3/sites
+gsc api POST /webmasters/v3/sites/sc-domain%3Aexample.com/searchAnalytics/query --data '{"startDate":"2026-09-01","endDate":"2026-09-30"}'
+gsc api PUT /webmasters/v3/sites/sc-domain%3Aexample.com/sitemaps/https%3A%2F%2Fexample.com%2Fsitemap.xml --dry-run
+```
+
+`GET` and the two read-only `POST`s are reads. Every other request is treated as a write: blocked by
+`--read-only`, printed instead of sent with `--dry-run`, and confirmed (or `--yes`) before it is sent.
+`--data` takes JSON, `@file`, or `-` for stdin.
