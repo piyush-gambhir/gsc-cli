@@ -1,0 +1,17 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "installation",
+    "authentication",
+    "quickstart",
+    "output-formats",
+    "data",
+    "agents",
+    "compatibility",
+    "---Commands---",
+    "...commands",
+    "---Reference---",
+    "...reference"
+  ]
+}

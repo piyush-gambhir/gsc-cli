@@ -1,0 +1,82 @@
+---
+title: Search Analytics queries
+description: Use gsc query for every Search Analytics option, including dimensions, filters, search types, data states, aggregation, pagination, and raw request bodies.
+---
+
+`gsc query` runs `searchAnalytics.query` with every option the API has. The helpers on
+[Search performance](/docs/commands/performance) are shortcuts for common shapes of this command.
+
+```bash
+gsc query -s sc-domain:example.com -d query -d page --limit 5000 -o csv
+gsc query --last 3m -d date --filter 'country = ind' --filter 'query ~ shoes'
+gsc query -d hour --data-state hourly_all --last 2d -o json
+gsc query -d query --compare previous --limit 500
+```
+
+Without dates it covers the last 28 days ending at the latest day with data. Google sorts rows by
+clicks.
+
+## Dimensions
+
+`-d` (`--dimension`) groups the rows; repeat it or pass a comma list. The columns follow the order you
+give:
+
+| Dimension | Values |
+| --- | --- |
+| `date` | `YYYY-MM-DD`, Pacific Time |
+| `hour` | Hourly timestamps; needs `--data-state hourly_all` and covers about 10 days |
+| `query` | Search queries (anonymized queries are never included) |
+| `page` | Page URLs |
+| `country` | ISO 3166-1 alpha-3 codes, such as `usa` |
+| `device` | `DESKTOP`, `MOBILE`, `TABLET` |
+| `searchAppearance` | Rich result and feature types; cannot be grouped with other dimensions |
+
+## Filters
+
+`--filter 'DIM OP VALUE'` filters on `query`, `page`, `country`, `device`, or `searchAppearance`; dates come
+from `--start`, `--end`, or `--last`. Repeated filters are ANDed; the API has no OR.
+
+| Operator | Meaning |
+| --- | --- |
+| `=` | Equals (case-sensitive for `page` and `query`) |
+| `!=` | Does not equal |
+| `~` | Contains |
+| `!~` | Does not contain |
+| `=~` | Matches an RE2 regular expression |
+| `!=~` | Does not match an RE2 regular expression |
+
+```bash
+gsc query -d page --filter 'page =~ ^https://www.example.com/blog/' --filter 'device = MOBILE'
+gsc query -d query --filter 'query !~ example'     # leave out branded queries
+```
+
+## Search type, data state, and aggregation
+
+- `--type`: `web` (default), `image`, `video`, `news`, `discover`, or `googleNews`.
+- `--data-state`: `final` (default), `all` to include preliminary data, or `hourly_all` for the `hour`
+  dimension. See [Reading the data](/docs/data#final-and-preliminary-data).
+- `--aggregation`: `auto`, `byPage`, `byProperty`, or `byNewsShowcasePanel`. Neither `byProperty` nor
+  `byNewsShowcasePanel` can be combined with page grouping or a page filter. `byProperty` is not
+  available for `discover` or `googleNews`; `byNewsShowcasePanel` needs one of them and exactly one
+  `searchAppearance = NEWS_SHOWCASE` filter.
+
+These rules are checked before any request is sent. Anything else is left to Google, whose error is
+shown as it is.
+
+## How many rows
+
+`--limit` sets the number of rows (default 1,000). Rows are fetched in pages of up to 25,000 with
+`startRow`, and `--all` keeps fetching until Google has nothing more. `complete: true` in JSON means
+pagination reached the end of what Google exposes, never that every query is included.
+
+## Raw requests
+
+```bash
+gsc query -d query --filter 'page ~ /blog/' --print-request      # show the body, send nothing
+gsc query --request-file body.json --last 7d                      # start from a body; flags override it
+gsc query -d query --raw                                          # Google's response, unchanged
+```
+
+`--request-file` takes a JSON request body (or `-` for stdin) for anything flags do not express.
+`--raw` prints a single page of Google's response unchanged, so it cannot be combined with `--all` or
+`--compare`.

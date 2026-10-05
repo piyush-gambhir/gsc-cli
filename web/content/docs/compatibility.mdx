@@ -1,0 +1,54 @@
+---
+title: Compatibility
+description: The Google API snapshot gsc is tested against, how it differs from Google's documentation, and the platforms it runs on.
+---
+
+`gsc` targets the Search Console API at `https://searchconsole.googleapis.com/`. Older method pages still
+show `https://www.googleapis.com/`, which `gsc` does not use.
+
+## Pinned API snapshot
+
+`gsc` is built and tested against Google's discovery documents, captured from Google's live discovery
+service on 2026-10-03 and vendored unchanged in the repository. A coverage test checks their SHA-256 and
+revision on every test run.
+
+| API | Discovery revision | Methods |
+| --- | --- | --- |
+| Search Console API v1 | `20260923` | 11: the 10 active methods `gsc` implements, and the retired Mobile-Friendly Test |
+| Indexing API v3 | `20260923` | 2, skipped by decision |
+
+The test fails when a snapshot method has no command or skip reason, or when a mapped command does not
+exist. The [API coverage](/docs/reference/api-coverage) page lists every method, and the
+[compatibility record](https://github.com/piyush-gambhir/gsc-cli/blob/main/docs/compatibility.md) has
+the hashes and how to refresh the snapshot.
+
+The Indexing API is skipped because Google limits it to pages with `JobPosting` or `BroadcastEvent`
+structured data; a general "request indexing" command would invite unsupported use. Google retired the
+Mobile-Friendly Test API on 2023-12-01.
+
+## Known differences and choices
+
+- **Metadata spelling.** The method reference spells the incompleteness fields `first_incomplete_date`
+  and `first_incomplete_hour`; discovery and Google's Go client use camelCase. `gsc` accepts both and
+  always prints snake_case.
+- **Search appearance.** The method reference allows any dimension combination; the extraction guide
+  says `searchAppearance` cannot be grouped with other dimensions. `gsc` warns instead of rejecting.
+  `gsc top appearance` lists the values to filter on.
+- **Retention.** 16 months (10 days for hourly data) is data availability, not a request rule: explicit
+  dates beyond it produce a warning, and `--last` and comparison periods are clipped with a notice.
+- **Enums.** Discovery lists some enums in upper case; `gsc` sends the method-reference spellings
+  (`byPage`, `hourly_all`) and accepts any case on input. Returned values are kept as Google sends them.
+- **Validation.** Before any request, `gsc` checks only what Google documents: date order, `hour` only
+  with `hourly_all`, duplicate dimensions, aggregation rules, and regex syntax. Anything else is left to
+  the server, whose error is shown as it is.
+
+## Not covered
+
+PageSpeed Insights, the Chrome UX Report, and Search Console's bulk data export to BigQuery are separate
+services with their own access and semantics, so `gsc` does not cover them. `gsc export` is the API-side
+alternative to the BigQuery export.
+
+## Platforms
+
+Prebuilt binaries for macOS, Linux, and Windows on `amd64` and `arm64`. CI runs the tests on all three
+operating systems. Building from source needs Go 1.26 or later.

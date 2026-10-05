@@ -1,0 +1,88 @@
+---
+title: Reading the data
+description: What Google Search Console data from gsc does and does not mean, so neither people nor agents draw the wrong conclusion.
+---
+
+Search Console data has rules that are easy to misread. `gsc` states them in its output, and this page
+explains why they matter.
+
+## Dates are Pacific Time
+
+Search Console reports days in Pacific Time, and every date in `gsc` (`--start`, `--end`, and the `start`
+and `end` fields) is a Pacific Time date, inclusive. `--last 28d` ends at the latest day with data for the
+chosen data state; one small extra request finds that day, and passing `--end` skips it. Month windows
+that end on a month's last day cover whole calendar months.
+
+## Final and preliminary data
+
+Recent days start out **preliminary** and become **final** later, usually after two to three days.
+
+- `--data-state final` is the default, so numbers are final unless you ask otherwise.
+- `--data-state all` includes preliminary days. Never present those numbers as final: they can still
+  change. JSON reports `first_incomplete_date` when Google provides it.
+- `--data-state hourly_all` is required for the `hour` dimension and covers about the last 10 days.
+- `gsc freshness` reports the latest final date and the latest preliminary date, so you can check before
+  trusting the last few days.
+
+## Rows are not totals
+
+Google does not return every query:
+
+- **Anonymized queries are withheld.** Queries too rare to show for privacy reasons count toward the
+  totals but never appear as rows.
+- **Rows are capped.** Google exposes at most 50,000 rows per day per search type, however you page.
+
+So **never add up query or page rows to get site totals.** Use `gsc performance`, a query with no
+dimensions whose totals match the Performance report chart, anonymized queries included. In JSON,
+`complete: true` only means pagination reached the end of what Google exposes; it never means every
+query is there.
+
+## Row limits
+
+`--limit` defaults to 1,000 rows (25 for `top`). Larger limits are fetched in pages of up to 25,000 rows,
+and `--all` fetches every row Google exposes. For the full history of a property, `gsc export` fetches
+day by day, as Google's extraction guide recommends.
+
+## Comparisons
+
+`--compare previous` runs a second query for the period just before; `--compare yoy` uses the same dates
+a year earlier.
+
+- A row missing from one period is `null`, **not zero**. Results are capped, so a row can be missing even
+  when the query had traffic.
+- CTR changes are in percentage points. Percent change is `null` when the earlier value is zero.
+- `insights new-queries` and `lost-queries` describe rows newly exposed or no longer exposed within the
+  fetched rows, not changes in ranking.
+
+## Retention
+
+Search Console keeps 16 months of daily data and about 10 days of hourly data. Explicit dates beyond
+that produce a warning, and `--last` and comparison periods are clipped with a notice.
+
+## URL Inspection is the indexed version
+
+`gsc inspect` reports what Google has **indexed**, as last crawled. It is not a live test of the page as
+it is now, and the API cannot request indexing. Each inspection counts against a quota of 2,000 per
+property per day and 600 per minute; `inspect` paces itself and stops cleanly at the quota, and `--max`
+caps how many URLs it spends.
+
+## Quotas
+
+Search Analytics allows 1,200 queries per minute per property, plus unpublished load quotas: grouping by
+page and query together over long ranges is expensive. When a quota is hit, narrow the date range or the
+dimensions and wait about 15 minutes. `gsc` never retries automatically; only `gsc export --retry N`
+opts in.
+
+## Features without an API
+
+Some Search Console reports have no public API, so `gsc` cannot read them: the branded query filter,
+query groups and the Insights report, generative AI performance for AI Overviews and AI Mode (that
+traffic is included in ordinary totals but cannot be separated), Core Web Vitals, Page indexing, manual
+actions, links, and crawl stats. The [API coverage](/docs/reference/api-coverage) page has the full list.
+
+## Corrections from Google
+
+Google occasionally corrects historical data, for example an impression-logging issue affecting
+2025-05-13 to 2026-04-27. Check Google's
+[data anomalies log](https://support.google.com/webmasters/answer/6211453) before attributing a
+historical change to your site or to `gsc`.

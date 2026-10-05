@@ -1,0 +1,12 @@
+{
+  "title": "Commands",
+  "pages": [
+    "index",
+    "performance",
+    "query",
+    "inspection",
+    "export",
+    "insights",
+    "properties"
+  ]
+}
