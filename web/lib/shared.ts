@@ -1,4 +1,4 @@
-export const appName = 'Search Console CLI';
+export const appName = 'gsc-cli';
 export const siteUrl = 'https://projects.piyushgambhir.com/gsc-cli';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';

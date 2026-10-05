@@ -56,12 +56,12 @@ export interface SiteConfig {
 }
 
 export const site: SiteConfig = {
-  name: 'Search Console CLI',
+  name: 'gsc-cli',
   binary: 'gsc',
   repo: 'piyush-gambhir/gsc-cli',
   tagline: 'Google Search Console from your terminal',
   description:
-    'Search Console CLI (gsc) is an independent, unofficial open-source CLI for Google Search Console. Sign in with your Google account to read search performance, see how Google indexed your pages, manage sitemaps and properties, and export your data, from a scriptable tool built for people and coding agents alike.',
+    'gsc-cli is an independent, unofficial open-source CLI for Google Search Console. Sign in with your Google account to read search performance, see how Google indexed your pages, manage sitemaps and properties, and export your data, from a scriptable tool built for people and coding agents alike.',
   badge: 'Open-source · Agent-friendly',
   accent: 'oklch(0.72 0.13 265)',
   accentName: 'periwinkle',

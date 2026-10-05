@@ -6,7 +6,7 @@ import { createPageMetadata } from '@/lib/metadata';
 export const metadata: Metadata = createPageMetadata({
   title: 'Contact',
   description:
-    'Contact information for Search Console CLI (gsc), an independent, unofficial open-source CLI for Google Search Console.',
+    'Contact information for gsc-cli, an independent, unofficial open-source CLI for Google Search Console.',
   path: '/contact',
 });
 
@@ -14,7 +14,7 @@ export default function ContactPage() {
   return (
     <LegalPage title="Contact">
       <p className="legal-page__lede">
-        Search Console CLI is a free, open-source project maintained by{' '}
+        gsc-cli is a free, open-source project maintained by{' '}
         <strong>Piyush Gambhir</strong>. Support is best-effort; here are the best
         ways to get in touch.
       </p>
@@ -64,7 +64,7 @@ export default function ContactPage() {
           developer.piyushgambhir@gmail.com
         </a>{' '}
         with the details rather than opening a public issue, or use GitHub&apos;s private vulnerability
-        reporting on the repository. Search Console CLI keeps your Google sign-in only on your own device
+        reporting on the repository. gsc-cli keeps your Google sign-in only on your own device
         and operates no servers, but responsible disclosure is always appreciated.
       </p>
 
@@ -78,7 +78,7 @@ export default function ContactPage() {
 
       <h2>Not affiliated with Google</h2>
       <p>
-        Search Console CLI is an independent, unofficial tool and is not affiliated
+        gsc-cli is an independent, unofficial tool and is not affiliated
         with, endorsed by, or sponsored by Google. For issues with Google Search
         Console itself, use Google&apos;s own support channels.
       </p>

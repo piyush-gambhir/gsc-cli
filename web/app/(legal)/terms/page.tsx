@@ -6,7 +6,7 @@ import { createPageMetadata } from '@/lib/metadata';
 export const metadata: Metadata = createPageMetadata({
   title: 'Terms of Service',
   description:
-    'Terms of service for Search Console CLI (gsc), an independent, unofficial open-source CLI for Google Search Console.',
+    'Terms of service for gsc-cli, an independent, unofficial open-source CLI for Google Search Console.',
   path: '/terms',
 });
 
@@ -14,13 +14,13 @@ export default function TermsPage() {
   return (
     <LegalPage title="Terms of Service" effective="October 5, 2026">
       <p className="legal-page__lede">
-        By installing or using Search Console CLI (the <code>gsc</code> command-line
+        By installing or using gsc-cli (the <code>gsc</code> command-line
         tool), you agree to these terms.
       </p>
 
       <h2>1. License</h2>
       <p>
-        Search Console CLI is free, open-source software distributed under the{' '}
+        gsc-cli is free, open-source software distributed under the{' '}
         <strong>MIT License</strong>. The full license text is in the{' '}
         <a
           href="https://github.com/piyush-gambhir/gsc-cli/blob/main/LICENSE"
@@ -60,7 +60,7 @@ export default function TermsPage() {
 
       <h2>5. No affiliation</h2>
       <p>
-        Search Console CLI is an <strong>independent, unofficial</strong> tool. It is
+        gsc-cli is an <strong>independent, unofficial</strong> tool. It is
         not affiliated with, endorsed by, or sponsored by Google. Google and Google
         Search Console are trademarks of Google LLC. All product names and trademarks are the property of their respective
         owners.

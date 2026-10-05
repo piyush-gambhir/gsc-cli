@@ -13,7 +13,7 @@ export async function GET() {
     .map(({ name, href }) => `- ${name}: ${href}`)
     .join('\n');
   const intro =
-    'Search Console CLI (binary: gsc) is an independent, unofficial command-line interface for Google Search Console, built for people and coding agents. It covers all 10 active Search Console API methods: Search Analytics with every option, URL Inspection, sitemaps, and properties, plus period comparisons, resumable bulk export, and locally computed insights. Agents should run commands with -o json --no-input, use --read-only unless asked to change something, and preview writes with --dry-run. Run gsc freshness before trusting the last few days, take totals from gsc performance instead of summing query or page rows, and treat gsc inspect as Google\'s indexed view, not a live test.';
+    'gsc-cli (binary: gsc) is an independent, unofficial command-line interface for Google Search Console, built for people and coding agents. It covers all 10 active Search Console API methods: Search Analytics with every option, URL Inspection, sitemaps, and properties, plus period comparisons, resumable bulk export, and locally computed insights. Agents should run commands with -o json --no-input, use --read-only unless asked to change something, and preview writes with --dry-run. Run gsc freshness before trusting the last few days, take totals from gsc performance instead of summing query or page rows, and treat gsc inspect as Google\'s indexed view, not a live test.';
   return new Response(
     `${intro}\n\n${index}\n\n## Related CLI sites\n\n${relatedSites}\n`,
   );

@@ -6,7 +6,7 @@ import { createPageMetadata } from '@/lib/metadata';
 export const metadata: Metadata = createPageMetadata({
   title: 'Privacy Policy',
   description:
-    'Privacy policy for Search Console CLI (gsc), an independent, unofficial open-source CLI for Google Search Console.',
+    'Privacy policy for gsc-cli, an independent, unofficial open-source CLI for Google Search Console.',
   path: '/privacy',
 });
 
@@ -17,7 +17,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy Policy" effective="October 5, 2026">
       <p className="legal-page__lede">
-        Search Console CLI (the <code>gsc</code> command-line tool) is an open-source
+        gsc-cli (the <code>gsc</code> command-line tool) is an open-source
         program that runs entirely on your own computer. It does <strong>not</strong>{' '}
         collect, transmit, or store your personal data or your Google data on any
         server operated by its developer, Piyush Gambhir (&quot;the developer&quot;).
