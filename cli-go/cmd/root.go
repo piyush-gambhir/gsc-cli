@@ -97,6 +97,11 @@ func newRoot(a *app) *cobra.Command {
 					return fmt.Errorf("%s changes local state and is blocked by --read-only", cmd.CommandPath())
 				}
 			}
+			// These commands have no preview, so running them would ignore --dry-run
+			// (logout --revoke would revoke at Google). update handles --dry-run itself.
+			if a.dryRun && cmd.Annotations[annWritesLocal] == "true" {
+				return fmt.Errorf("%s has no --dry-run preview; run it without --dry-run", cmd.CommandPath())
+			}
 			a.startUpdateCheck(cmd)
 			return nil
 		},
