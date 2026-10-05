@@ -28,16 +28,14 @@ func (a *app) auth() *cobra.Command {
 }
 
 // loginProfile is --profile, then GSC_PROFILE, then the current profile, then "default".
+// An unreadable config fails here, before the browser opens or a token is
+// stored, rather than silently falling back to "default".
 func (a *app) loginProfile() (string, error) {
-	name := a.profile
-	if name == "" {
-		name = os.Getenv("GSC_PROFILE")
+	cfg, _, err := a.loadConfig()
+	if err != nil {
+		return "", err
 	}
-	if name == "" {
-		if cfg, _, err := a.loadConfig(); err == nil && cfg.CurrentProfile != "" {
-			name = cfg.CurrentProfile
-		}
-	}
+	name := cfg.SelectProfile(a.profile)
 	if name == "" {
 		name = "default"
 	}
@@ -521,6 +519,9 @@ func (a *app) logout() *cobra.Command {
 				return err
 			}
 			name := cfg.SelectProfile(a.profile)
+			if name == "" {
+				return errors.New("no profile selected and no current profile saved; pass --profile NAME (gsc auth list shows them)")
+			}
 			p, ok := cfg.Profiles[name]
 			if !ok {
 				return fmt.Errorf("profile %q not found", name)
