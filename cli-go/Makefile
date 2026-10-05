@@ -14,7 +14,8 @@ GSC_OAUTH_CLIENT_SECRET ?=
 
 LDFLAGS := -s -w -X $(MODULE)/internal/build.Version=$(VERSION) -X $(MODULE)/internal/build.Commit=$(COMMIT) -X $(MODULE)/internal/build.Date=$(DATE) \
 	-X $(MODULE)/internal/auth.BuiltinClientID=$(GSC_OAUTH_CLIENT_ID) -X $(MODULE)/internal/auth.BuiltinClientSecret=$(GSC_OAUTH_CLIENT_SECRET)
-INSTALL_DIR ?= $(shell go env GOPATH)/bin
+# Like go install: $GOBIN when set, else $(go env GOPATH)/bin.
+INSTALL_DIR ?= $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
 
 .PHONY: build install test vet fmt tidy docs
 build:

@@ -18,7 +18,16 @@ How credentials are handled:
   confidential; it is injected at release time and never committed.
 
 Remote writes (`sites add/remove`, `sitemaps submit/delete`, and non-read `gsc api` calls) are blocked by
-`--read-only`, as are local credential changes and self-update.
+`--read-only`, as are local credential changes and self-update. `gsc update` replaces the local executable
+after SHA-256 checksum verification, extracting only the `gsc` (or `gsc.exe`) regular file from the archive; a
+failed update leaves the old binary in place.
+
+In an interactive terminal, `gsc` reads the latest release from the github.com release page at most once a
+day (an anonymous request with no account or usage data; not the GitHub API) to print an update notice.
+The automatic check never runs when stderr is not a terminal or `CI` is set, and `GSC_NO_UPDATE_NOTIFIER=1`,
+`NO_UPDATE_NOTIFIER=1`, or `--quiet` turns it off; `gsc update` and `gsc update --check` contact GitHub only
+when you run them, using the same page and github.com release downloads. The result is cached in
+`update-check.json` in the config directory.
 
 Releases are immutable once published and include SBOMs and signed build-provenance attestations; verify an
 archive with `gh attestation verify <archive> --repo piyush-gambhir/gsc-cli`. `gsc update` and `install.sh`

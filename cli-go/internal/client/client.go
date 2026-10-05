@@ -106,35 +106,37 @@ type envelope struct {
 }
 
 func decodeError(res *http.Response, body []byte) *APIError {
-	e := &APIError{Status: res.StatusCode, Message: http.StatusText(res.StatusCode), RetryAfter: res.Header.Get("Retry-After")}
+	e := &APIError{Status: res.StatusCode, Message: http.StatusText(res.StatusCode), RetryAfter: sanitize(res.Header.Get("Retry-After"))}
 	var env envelope
 	if json.Unmarshal(body, &env) == nil && env.Error != nil {
 		if env.Error.Message != "" {
 			e.Message = sanitize(env.Error.Message)
 		}
-		e.GoogleStatus = env.Error.Status
+		e.GoogleStatus = sanitize(env.Error.Status)
 		if len(env.Error.Errors) > 0 {
-			e.Reason = env.Error.Errors[0].Reason
+			e.Reason = sanitize(env.Error.Errors[0].Reason)
 		}
 		for _, d := range env.Error.Details {
 			if e.Reason == "" && d.Reason != "" {
-				e.Reason = d.Reason
+				e.Reason = sanitize(d.Reason)
 			}
 		}
 	}
 	return e
 }
 
-// sanitize strips control characters and bounds length for error messages.
+// sanitize makes response text safe to print: control characters (terminal
+// escapes) become spaces, invalid UTF-8 is dropped, and the length is bounded
+// without splitting a character.
 func sanitize(s string) string {
 	s = strings.Map(func(r rune) rune {
 		if unicode.IsControl(r) {
 			return ' '
 		}
 		return r
-	}, s)
+	}, strings.ToValidUTF8(s, ""))
 	if len(s) > 500 {
-		s = s[:500] + "..."
+		s = strings.ToValidUTF8(s[:500], "") + "..."
 	}
 	return s
 }

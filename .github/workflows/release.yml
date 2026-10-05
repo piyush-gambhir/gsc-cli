@@ -64,7 +64,7 @@ jobs:
       - name: Vulnerability scan
         if: steps.version.outputs.publish == 'true'
         working-directory: cli-go
-        run: go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
       - name: Tag the release commit
         if: steps.version.outputs.publish == 'true'
         env:

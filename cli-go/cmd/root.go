@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/analytics"
@@ -20,6 +22,7 @@ import (
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/output"
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/secrets"
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/site"
+	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/update"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -39,8 +42,19 @@ type app struct {
 	now         func() time.Time
 	terminal    func() bool
 	sleep       func(context.Context, time.Duration) error
+	// exePath and stderrTTY replace the running executable's path and stderr
+	// terminal detection.
+	exePath   string
+	stderrTTY func() bool
 
 	stdin *bufio.Reader
+
+	// updateCheck carries the release check from PersistentPreRun to
+	// PersistentPostRun; checks tracks its background request, and
+	// checkStarted is set when this run sent it.
+	updateCheck  chan update.Cache
+	checks       sync.WaitGroup
+	checkStarted bool
 }
 
 // Annotation keys used by --read-only and the command-safety manifest.
@@ -83,8 +97,15 @@ func newRoot(a *app) *cobra.Command {
 					return fmt.Errorf("%s changes local state and is blocked by --read-only", cmd.CommandPath())
 				}
 			}
+			// These commands have no preview, so running them would ignore --dry-run
+			// (logout --revoke would revoke at Google). update handles --dry-run itself.
+			if a.dryRun && cmd.Annotations[annWritesLocal] == "true" {
+				return fmt.Errorf("%s has no --dry-run preview; run it without --dry-run", cmd.CommandPath())
+			}
+			a.startUpdateCheck(cmd)
 			return nil
 		},
+		PersistentPostRun: func(cmd *cobra.Command, args []string) { a.printUpdateNotice() },
 	}
 	root.SetIn(a.in)
 	root.SetOut(a.out)
@@ -101,7 +122,7 @@ func newRoot(a *app) *cobra.Command {
 	f.BoolVarP(&a.verbose, "verbose", "v", envBool("GSC_VERBOSE"), "Log request method, URL, and status to stderr (never tokens or bodies)")
 	f.BoolVar(&a.readOnly, "read-only", envBool("GSC_READ_ONLY"), "Block remote writes, local credential changes, and self-update")
 	f.BoolVar(&a.dryRun, "dry-run", false, "For write commands: print the request and send nothing")
-	f.BoolVar(&a.yes, "yes", false, "Confirm destructive commands without prompting")
+	f.BoolVarP(&a.yes, "yes", "y", false, "Confirm destructive commands and updates without prompting")
 
 	root.AddCommand(a.auth(), a.configCmd(), a.sites(), a.sitemaps(), a.query(), a.performance(), a.top(), a.trend(),
 		a.freshness(), a.inspect(), a.export(), a.insights(), a.api(), a.doctor(), a.update())
@@ -112,8 +133,15 @@ func newRoot(a *app) *cobra.Command {
 	status.Use = "status"
 	status.Short = "Alias of auth status"
 	root.AddCommand(login, status)
-	root.AddCommand(&cobra.Command{Use: "version", Short: "Print build information", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
-		return a.print(map[string]any{"version": build.Version, "commit": build.Commit, "date": build.Date, "builtin_oauth_client": auth.BuiltinClientID != ""})
+	root.AddCommand(&cobra.Command{Use: "version", Short: "Print build information", Long: "Prints the version, commit, build date, and whether a built-in OAuth client is present. latest and\nupdate_available come from the last release check (see gsc update --help) and appear only when one is\ncached; version never uses the network.", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
+		info := map[string]any{"version": build.Version, "commit": build.Commit, "date": build.Date, "builtin_oauth_client": auth.BuiltinClientID != ""}
+		if dir, err := config.Dir(); err == nil {
+			if c := update.ReadCache(dir); c.LatestVersion != "" {
+				info["latest"] = c.LatestVersion
+				info["update_available"] = update.Newer(c.LatestVersion, build.Version)
+			}
+		}
+		return a.print(info)
 	}})
 	root.AddCommand(&cobra.Command{Use: "completion [bash|zsh|fish|powershell]", Short: "Generate shell completion script", Args: cobra.ExactArgs(1), ValidArgs: []string{"bash", "zsh", "fish", "powershell"}, RunE: func(cmd *cobra.Command, args []string) error {
 		switch args[0] {
@@ -134,6 +162,14 @@ func newRoot(a *app) *cobra.Command {
 
 // Run executes the CLI and returns the process exit code.
 func Run(ctx context.Context, args []string, in io.Reader, out, errOut io.Writer) int {
+	if runtime.GOOS == "windows" {
+		// A Windows self-update leaves the replaced gsc.exe.old behind.
+		if exe, err := os.Executable(); err == nil {
+			if exe, err = filepath.EvalSymlinks(exe); err == nil {
+				update.RemoveLeftover(exe)
+			}
+		}
+	}
 	a := newApp(in, out, errOut)
 	return a.run(ctx, args)
 }
@@ -167,6 +203,9 @@ func (a *app) run(ctx context.Context, args []string) int {
 	} else {
 		fmt.Fprintln(a.errOut, "Error:", message)
 	}
+	// Cobra skips PersistentPostRun when a command fails; collect the day's
+	// release check here so a failing command does not lose it.
+	a.printUpdateNotice()
 	return 1
 }
 

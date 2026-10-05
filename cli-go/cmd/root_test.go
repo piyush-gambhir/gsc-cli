@@ -278,6 +278,10 @@ func TestLoginLifecycle(t *testing.T) {
 	if r.code != 0 || f.count("PUT searchconsole.googleapis.com/webmasters/v3/sites/sc-domain%3Aexample.com/sitemaps/") != 1 {
 		t.Fatalf("submit: %s", r.errOut)
 	}
+	r = cli(t, f, now, "", "auth", "logout", "--revoke", "--yes", "--dry-run")
+	if r.code == 0 || !strings.Contains(r.errOut, "--dry-run") || f.count("POST oauth2.googleapis.com/revoke") != 0 {
+		t.Fatalf("dry-run logout revoked or removed the profile: %s", r.errOut)
+	}
 	r = cli(t, f, now, "", "auth", "logout", "--revoke")
 	if r.code == 0 || !strings.Contains(r.errOut, "--yes") || f.count("POST oauth2.googleapis.com/revoke") != 0 {
 		t.Fatalf("revoke without confirmation: %s", r.errOut)
