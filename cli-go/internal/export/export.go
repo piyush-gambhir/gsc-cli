@@ -31,7 +31,9 @@ type Options struct {
 	OutDir string
 	// Retry is the number of retries for quota and 5xx errors (default 0).
 	Retry int
-	// MinInterval spaces requests to stay under per-site QPM limits.
+	// MinInterval is the minimum time between the start of one day (or retry)
+	// and the next, to stay under per-site QPM limits; a day's pages are
+	// fetched back to back.
 	MinInterval time.Duration
 	// Restart discards a manifest written for a different request.
 	Restart bool

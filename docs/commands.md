@@ -234,7 +234,7 @@ gsc export [flags]
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
       --format string        File format: csv or ndjson (default "csv")
-      --interval duration    Minimum pause between requests (default 250ms)
+      --interval duration    Minimum time between the start of one day and the next (a day's pages are fetched back to back) (default 250ms)
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --out string           Output directory (created if missing)
       --restart              Discard a manifest written for a different request

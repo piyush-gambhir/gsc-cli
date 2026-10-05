@@ -71,7 +71,7 @@ func (a *app) export() *cobra.Command {
 	fl.StringVar(&out, "out", "", "Output directory (created if missing)")
 	fl.StringVar(&format, "format", "csv", "File format: csv or ndjson")
 	fl.IntVar(&retry, "retry", 0, "Retry quota and server errors this many times per day, with backoff (default 0)")
-	fl.DurationVar(&interval, "interval", 250*time.Millisecond, "Minimum pause between requests")
+	fl.DurationVar(&interval, "interval", 250*time.Millisecond, "Minimum time between the start of one day and the next (a day's pages are fetched back to back)")
 	fl.BoolVar(&restart, "restart", false, "Discard a manifest written for a different request")
 	return c
 }
