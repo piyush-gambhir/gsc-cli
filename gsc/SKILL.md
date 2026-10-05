@@ -26,3 +26,12 @@ Use the installed `gsc` binary; check subcommand `--help` for flags. The full re
   query together over long ranges. Do not retry quota errors in a loop.
 - Writes (`sites add/remove`, `sitemaps submit/delete`) need the user's explicit request; use `--dry-run`
   to show the request first. Some UI features (branded filter, AI Overviews reports, Insights) have no API.
+
+## Updating gsc
+
+- `gsc update --check -o json` reports `current_version`, `latest_version`, `update_available`,
+  `release_url`, and `install_method` (`self`, or `go` for a source build in a Go bin directory).
+- Install only when the user asks: `gsc update --yes --no-input` (macOS, Linux, and Windows). It verifies
+  the SHA-256 checksum and leaves the old binary in place on any failure; `--read-only` blocks it.
+- The once-a-day update notice runs only when stderr is a terminal, so agent runs never see it or trigger
+  its GitHub request. `GSC_NO_UPDATE_NOTIFIER=1` or `NO_UPDATE_NOTIFIER=1` turns it off everywhere.

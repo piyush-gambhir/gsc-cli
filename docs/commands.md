@@ -16,7 +16,7 @@ Global flags apply to every command.
   -s, --site string           Property: sc-domain:example.com, https://www.example.com/, or a bare host (or GSC_SITE)
       --timeout duration      HTTP request timeout (default 30s)
   -v, --verbose               Log request method, URL, and status to stderr (never tokens or bodies)
-      --yes                   Confirm destructive commands without prompting
+  -y, --yes                   Confirm destructive commands and updates without prompting
 ```
 
 ## gsc
@@ -773,19 +773,45 @@ gsc trend [flags]
 
 ## gsc update
 
-Install the latest GitHub release after SHA-256 verification
+Update gsc to the latest release (SHA-256 verified)
+
+Downloads the latest GitHub release for this OS and architecture, verifies it against the release's
+checksums.txt, and replaces the running gsc executable. Works on macOS, Linux, and Windows; on Windows
+the old executable is renamed to gsc.exe.old and deleted on a later run.
+
+Asks "Update now? [Y/n]" when stdin is a terminal; --yes skips the question, and --no-input requires
+--yes. --check only reports the current and latest versions. A gsc in a Go bin directory ($GOBIN,
+$GOPATH/bin, or ~/go/bin) is not replaced: rebuild it from your checkout instead. --read-only blocks
+installing but allows --check.
+
+Update notice: in an interactive terminal, gsc checks the github.com releases page (not the GitHub API,
+so its rate limit never applies) for a new release at most once a day and, after a command's output,
+prints a notice on stderr. The command that runs the day's check waits up to 1 second after its output
+for the answer; other commands never wait. gsc update and update --check store their result in the same
+cache. It never checks when stderr is not a terminal, when CI is set, with --quiet, or when
+GSC_NO_UPDATE_NOTIFIER or NO_UPDATE_NOTIFIER is set (to anything).
 
 ```text
 gsc update [flags]
 ```
 
+```bash
+  gsc update --check
+  gsc update
+  gsc update --yes --no-input
+```
+
 ```text
-      --check   Only check the latest published release
+      --check   Only report the current and latest versions (always checks the github.com releases page)
 ```
 
 ## gsc version
 
 Print build information
+
+Prints the version, commit, build date, and whether a built-in OAuth client is present. latest and
+update_available come from the last release check (see gsc update --help) and appear only when one is
+cached; version never uses the network.
 
 ```text
 gsc version

@@ -15,6 +15,11 @@ Use `gsc --help` and `docs/commands.md` for current flags. See `gsc/SKILL.md` fo
   `docs/api-coverage.md` together. Update all of them when the API or commands change.
 - Preserve stdout as data and stderr as diagnostics. No automatic retries outside `export --retry`. Never
   present `all` data as final, never sum query rows as totals, never call URL Inspection a live test.
+- No background calls except one: the update notice's release check (`cmd/notify.go`, `internal/update`). It
+  runs at most once a day, only when stderr is a terminal, never for `update`, `version`, `completion`, `help`,
+  or dev builds, and is off under `CI`, `--quiet`, `GSC_NO_UPDATE_NOTIFIER`, or `NO_UPDATE_NOTIFIER`. Only the
+  one run a day that sends the check waits for it, at most `update.NoticeWait` (1s) after the output; a cached
+  answer never waits. Do not add others.
 - Document user-visible changes (README, docs, skill) and regenerate `docs/commands.md` when flags change.
 - Releases: bump `cli-go/VERSION` in a pull request; merging to `main` tags and publishes it (see
   CONTRIBUTING.md). Never push release tags by hand. `main` requires pull requests and passing checks.

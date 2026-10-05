@@ -19,7 +19,7 @@ with Google.
 curl -fsSL https://raw.githubusercontent.com/piyush-gambhir/gsc-cli/main/install.sh | sh
 ```
 
-Installs to `~/.local/bin` (override with `INSTALL_DIR`; pin with `VERSION=v0.1.0`) after verifying the
+Installs to `~/.local/bin` (override with `INSTALL_DIR`; pin with `VERSION=v0.1.2`) after verifying the
 SHA-256 checksum. Windows users download the ZIP from the [releases page](https://github.com/piyush-gambhir/gsc-cli/releases).
 
 Ghostscript and Gambit Scheme also install a program named `gsc`. The installer warns if another `gsc` comes
@@ -31,10 +31,40 @@ From source (Go 1.26+, toolchain 1.27.1):
 git clone https://github.com/piyush-gambhir/gsc-cli.git
 cd gsc-cli/cli-go
 make build            # bin/gsc
-make install          # $(go env GOPATH)/bin/gsc, or INSTALL_DIR=...
+make install          # $GOBIN or $(go env GOPATH)/bin, or INSTALL_DIR=...
 ```
 
 Source builds have no built-in OAuth client unless you provide one (see [docs/auth.md](docs/auth.md)).
+
+### Update
+
+```bash
+gsc update --check    # current and latest version; -o json for scripts
+gsc update            # asks, then installs the latest release after SHA-256 verification
+```
+
+`gsc update` works on macOS, Linux, and Windows. It downloads the release archive for your platform, checks
+it against the release's `checksums.txt`, and replaces the running executable (on Windows the old one is
+renamed to `gsc.exe.old` and deleted on a later run). `--yes` skips the question; `--no-input` requires
+`--yes`. If the install directory is not writable it stops and leaves the old binary in place. A `gsc` in a
+Go bin directory (`$GOBIN`, `$GOPATH/bin`, `~/go/bin`) came from a source build, so `gsc update` tells you to
+run `git pull && make install` in your checkout instead of replacing it. `--read-only` blocks installing but
+allows `--check`.
+
+In an interactive terminal, `gsc` checks the github.com release page for a new release at most once a day
+(not the GitHub API, so its per-IP rate limit never breaks the check on shared networks) and, after a
+command's output, prints a notice on stderr:
+
+```text
+A new version of gsc is available: v0.1.1 -> v0.1.2
+Update with: gsc update
+Release notes: https://github.com/piyush-gambhir/gsc-cli/releases/tag/v0.1.2
+```
+
+It never checks (no network, no output) when stderr is not a terminal, when `CI` is set, with `--quiet` or
+`GSC_QUIET`, or when `GSC_NO_UPDATE_NOTIFIER=1` or `NO_UPDATE_NOTIFIER=1` is set, so scripts, CI, and agents
+are not affected. Only the one command a day that runs the check waits for it, at most 1 second after its
+output. `gsc version` shows the last known latest version from that check without a network call.
 
 ### Verify a download
 
@@ -129,8 +159,8 @@ is an envelope with the site, dates, type, data state, completeness, and rows. E
 structured on stderr; the exit status is 0 on success and 1 on failure.
 
 `--read-only` (or `GSC_READ_ONLY=1`) blocks every remote write, local credential change, and self-update.
-`--dry-run` prints a write request without sending it. Destructive commands confirm, or need `--yes` with
-`--no-input`. No command retries automatically; `export --retry N` opts in.
+`--dry-run` prints a write request without sending it. Destructive commands and `update` confirm, or need
+`--yes` (`-y`) with `--no-input`. No command retries automatically; `export --retry N` opts in.
 
 | Environment variable | Meaning |
 | --- | --- |
@@ -141,6 +171,7 @@ structured on stderr; the exit status is 0 on success and 1 on failure.
 | `GSC_CLIENT_ID`, `GSC_CLIENT_SECRET` | Override the built-in OAuth client |
 | `GSC_CONFIG`, `XDG_CONFIG_HOME` | Config location (default `~/.config/gsc-cli/config.yaml`) |
 | `GSC_NO_INPUT`, `GSC_QUIET`, `GSC_VERBOSE`, `GSC_READ_ONLY` | Same as the flags (`1` or `true`) |
+| `GSC_NO_UPDATE_NOTIFIER`, `NO_UPDATE_NOTIFIER` | Turn off the daily release check and update notice (any value) |
 
 ## API coverage and limits
 
