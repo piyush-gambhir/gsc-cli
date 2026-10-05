@@ -407,3 +407,41 @@ func TestUpdateRefusals(t *testing.T) {
 		})
 	}
 }
+
+// A failing command skips PersistentPostRun; the day's check must still be
+// collected (and its notice printed after the error), or it is lost for a day.
+func TestUpdateNoticeAfterAFailingCommand(t *testing.T) {
+	dir := updateEnv(t, "0.1.3")
+	f := slow(gh(t, "v0.1.4", nil), 200*time.Millisecond)
+	var out, errOut bytes.Buffer
+	a := newApp(strings.NewReader(""), &out, &errOut)
+	a.transport, a.exePath = f.transport(), filepath.Join(t.TempDir(), "gsc")
+	a.stderrTTY = func() bool { return true }
+	a.terminal = func() bool { return false }
+	code := a.run(context.Background(), []string{"sites", "list"}) // not logged in
+	a.checks.Wait()
+	if code == 0 || !strings.Contains(errOut.String(), "not logged in") || !strings.Contains(errOut.String(), noticeText) {
+		t.Fatalf("code %d stderr=%q", code, errOut.String())
+	}
+	if c := update.ReadCache(dir); c.LatestVersion != "0.1.4" || f.count() != 1 {
+		t.Fatalf("check not recorded: %+v requests=%d", c, f.count())
+	}
+}
+
+// If the attempt cannot be saved, checking anyway would repeat the request
+// (and the wait) on every run.
+func TestUpdateCheckSkippedWhenTheCacheIsNotWritable(t *testing.T) {
+	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
+		t.Skip("needs POSIX permissions and a non-root user")
+	}
+	dir := updateEnv(t, "0.1.3")
+	if err := os.Chmod(dir, 0500); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.Chmod(dir, 0700) })
+	f := &ghFake{}
+	res, took := timedRun(t, f, true, filepath.Join(t.TempDir(), "gsc"), offline...)
+	if res.err != nil || f.count() != 0 || took > 300*time.Millisecond {
+		t.Fatalf("%v requests=%d took %v", res.err, f.count(), took)
+	}
+}

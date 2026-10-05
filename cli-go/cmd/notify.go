@@ -53,13 +53,17 @@ func (a *app) startUpdateCheck(cmd *cobra.Command) {
 	}
 	now := time.Now()
 	c := update.ReadCache(dir)
-	a.updateCheck = make(chan update.Cache, 1)
 	if !c.Due(now) {
+		a.updateCheck = make(chan update.Cache, 1)
 		a.updateCheck <- c
 		return
 	}
 	c.AttemptedAt = now
-	_ = update.WriteCache(dir, c)
+	if update.WriteCache(dir, c) != nil {
+		// Without a saved attempt every run would check (and wait) again.
+		return
+	}
+	a.updateCheck = make(chan update.Cache, 1)
 	src := a.releases()
 	a.checkStarted = true
 	a.checks.Go(func() {
@@ -70,7 +74,8 @@ func (a *app) startUpdateCheck(cmd *cobra.Command) {
 	})
 }
 
-// printUpdateNotice runs in PersistentPostRun, after the command's output. A
+// printUpdateNotice runs after the command's output: in PersistentPostRun, or
+// in run after an error message (Cobra skips PersistentPostRun on errors). A
 // cached answer is used at once. If this run started the day's check, it waits
 // up to NoticeWait for the answer: the check is already recorded as attempted,
 // so an answer lost to a fast command would hide the notice for a day.

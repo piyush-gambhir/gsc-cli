@@ -24,9 +24,10 @@ failed update leaves the old binary in place.
 
 In an interactive terminal, `gsc` reads the latest release from the github.com release page at most once a
 day (an anonymous request with no account or usage data; not the GitHub API) to print an update notice.
-`gsc update` uses the same page and downloads from github.com release downloads. It never runs when stderr is
-not a terminal or `CI` is set, and `GSC_NO_UPDATE_NOTIFIER=1`, `NO_UPDATE_NOTIFIER=1`, or `--quiet` turns it
-off. The result is cached in `update-check.json` in the config directory.
+The automatic check never runs when stderr is not a terminal or `CI` is set, and `GSC_NO_UPDATE_NOTIFIER=1`,
+`NO_UPDATE_NOTIFIER=1`, or `--quiet` turns it off; `gsc update` and `gsc update --check` contact GitHub only
+when you run them, using the same page and github.com release downloads. The result is cached in
+`update-check.json` in the config directory.
 
 Releases are immutable once published and include SBOMs and signed build-provenance attestations; verify an
 archive with `gh attestation verify <archive> --repo piyush-gambhir/gsc-cli`. `gsc update` and `install.sh`

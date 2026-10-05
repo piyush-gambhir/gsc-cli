@@ -198,6 +198,9 @@ func (a *app) run(ctx context.Context, args []string) int {
 	} else {
 		fmt.Fprintln(a.errOut, "Error:", message)
 	}
+	// Cobra skips PersistentPostRun when a command fails; collect the day's
+	// release check here so a failing command does not lose it.
+	a.printUpdateNotice()
 	return 1
 }
 
