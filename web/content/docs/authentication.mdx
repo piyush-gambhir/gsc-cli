@@ -43,8 +43,9 @@ Found 3 properties. Default site set to sc-domain:example.com (change with: gsc 
    Secret Service on Linux). Access tokens refresh automatically from then on. Keychain entries are
    namespaced by config file, so same-named profiles in different configs (`GSC_CONFIG` or a custom
    `XDG_CONFIG_HOME`) never overwrite each other.
-4. `gsc` lists your properties once and picks a default site: the only property, your choice from a
-   list (interactive), or the first domain property (`--no-input`). `--no-verify` skips this call.
+4. `gsc` lists your properties once and picks a default site: the only property, or your choice from
+   a list. When it cannot ask (for example a service account or ADC login with `--no-input`), it picks
+   the first domain property. `--no-verify` skips this call.
 
 `gsc` asks Google for Search Console access (`https://www.googleapis.com/auth/webmasters`) plus `openid`
 and `email`, which let it show the signed-in account. What it does with that access is in the

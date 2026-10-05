@@ -24,7 +24,7 @@ const dataUse = [
   },
   {
     title: 'Where it goes',
-    body: 'Your data travels only between Google and your computer. It is never sent to the developer or anyone else, and your login stays in your OS keychain.',
+    body: 'Your data travels only between Google and your computer. It is never sent to the developer or anyone else, and your login is kept in your OS keychain unless you choose a local file.',
   },
 ] as const;
 
