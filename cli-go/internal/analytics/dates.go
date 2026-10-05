@@ -66,7 +66,10 @@ type Range struct{ Start, End Date }
 
 func (r Range) Days() int { return r.Start.DaysUntil(r.End) + 1 }
 
-var lastPattern = regexp.MustCompile(`^([1-9][0-9]*)([dwmy])$`)
+// lastPattern caps the count at four digits: far beyond the 16 months Search
+// Console keeps (ranges are clipped to that), and small enough that the date
+// arithmetic cannot overflow.
+var lastPattern = regexp.MustCompile(`^([1-9][0-9]{0,3})([dwmy])$`)
 
 // LastRange is the inclusive window of the given span ending at end: 28d ends
 // at end and starts 27 days earlier; 3m starts the day after the same date
