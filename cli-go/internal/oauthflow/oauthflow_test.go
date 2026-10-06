@@ -3,7 +3,9 @@ package oauthflow
 import (
 	"bytes"
 	"context"
+	"errors"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
@@ -139,5 +141,27 @@ func TestErrorCallbacksNeedStateAndAreSanitized(t *testing.T) {
 	_, err := checkCallback(url.Values{"error": {"access_denied"}, "error_description": {"bad\x1b[2Jthing\r\n" + strings.Repeat("x", 500)}, "state": {"s1"}}, "s1", false)
 	if err == nil || strings.ContainsAny(err.Error(), "\x1b\r\n") || len(err.Error()) > 320 || !strings.Contains(err.Error(), "bad[2Jthing") {
 		t.Fatalf("unsanitized error: %q", err)
+	}
+}
+
+func TestCallbackPage(t *testing.T) {
+	ok := httptest.NewRecorder()
+	writePage(ok, nil)
+	if ok.Code != http.StatusOK || !strings.Contains(ok.Body.String(), "You're signed in") || !strings.Contains(ok.Body.String(), "closes this tab") {
+		t.Fatalf("success page: %d %s", ok.Code, ok.Body)
+	}
+	if csp := ok.Header().Get("Content-Security-Policy"); !strings.Contains(csp, "default-src 'none'") {
+		t.Fatalf("missing CSP: %q", csp)
+	}
+
+	// Provider-supplied error text is reflected into the page, so it must be escaped.
+	bad := httptest.NewRecorder()
+	writePage(bad, errors.New(`authorization was denied (<script>alert(1)</script>)`))
+	body := bad.Body.String()
+	if bad.Code != http.StatusBadRequest || !strings.Contains(body, "Sign-in didn't finish") {
+		t.Fatalf("error page: %d %s", bad.Code, body)
+	}
+	if strings.Contains(body, "<script>") || !strings.Contains(body, "&lt;script&gt;") {
+		t.Fatalf("error detail not escaped: %s", body)
 	}
 }

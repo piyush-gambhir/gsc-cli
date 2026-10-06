@@ -37,8 +37,8 @@ Found 3 properties. Default site set to sc-domain:example.com (change with: gsc 
 
 1. `gsc` listens on `127.0.0.1` on a free port and opens Google's consent page (PKCE S256, a random
    `state`, offline access). The URL is printed to stderr in case the browser does not open.
-2. Approve access. Until Google verifies the built-in client you will see an "unverified app" notice:
-   choose **Advanced**, then continue.
+2. Approve access on Google's consent screen. The tab then confirms you are signed in; close it and
+   return to the terminal.
 3. The refresh token is saved in the OS keychain (macOS Keychain, Windows Credential Manager, or the
    Secret Service on Linux). Access tokens refresh automatically from then on. Keychain entries are
    namespaced by config file, so same-named profiles in different configs (`GSC_CONFIG` or a custom

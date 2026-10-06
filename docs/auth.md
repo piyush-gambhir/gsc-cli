@@ -32,8 +32,8 @@ Found 3 properties. Default site set to sc-domain:example.com (change with: gsc 
 
 1. `gsc` listens on `127.0.0.1` on a free port and opens Google's consent page (PKCE S256, random `state`,
    offline access). The URL is printed to stderr in case the browser does not open.
-2. Approve access. Until the built-in client is verified by Google you will see an "unverified app" notice:
-   choose **Advanced**, then continue.
+2. Approve access on Google's consent screen. The tab then confirms you are signed in; close it and return to
+   the terminal.
 3. The refresh token is saved in the OS keychain (macOS Keychain, Windows Credential Manager, or Linux Secret
    Service). Access tokens refresh automatically from then on. Keychain entries are namespaced by config
    file: the default config uses the service `gsc-cli`, and any other path (`GSC_CONFIG`, a custom
@@ -141,8 +141,10 @@ writes; tokens refreshed in read-only mode stay in memory.
 The one-command login needs an OAuth client compiled into release binaries. The maintainer creates it once:
 
 1. Create a Google Cloud project (for example `gsc-cli`) and enable the **Google Search Console API**.
-2. Configure the OAuth consent screen: **External**, app name, support email, and developer contact. Add the
-   scopes `openid`, `email`, and `.../auth/webmasters`. Set the publishing status to **In production**.
+2. Configure the OAuth consent screen: **External**, app name, support email, and developer contact. Under
+   **Branding**, set the home page and privacy policy links and add their domain as an authorized domain;
+   **Publish app** stays disabled until they are set. Under **Data Access**, add `openid`, `.../auth/userinfo.email`,
+   `.../auth/webmasters`, and `.../auth/webmasters.readonly`. Then set the publishing status to **In production**.
 3. Create an OAuth client of type **Desktop app**.
 4. Add the client ID and secret as repository secrets `GSC_OAUTH_CLIENT_ID` and `GSC_OAUTH_CLIENT_SECRET`. The
    release workflow passes them to GoReleaser, which injects them with `-ldflags -X`.
@@ -157,11 +159,11 @@ Never commit these values: Google's policy forbids client credentials in public 
 secrets are not confidential in Google's model (PKCE protects the flow), which is why shipping them inside the
 binary is acceptable.
 
-Until Google verifies the app, users see the unverified-app notice and the client is limited to 100 users in
-total. For a public launch: publish a homepage and privacy policy on a verified domain, check in **Google Auth
-Platform > Data Access** whether `webmasters.readonly` is non-sensitive (if so, defaulting to it avoids the
-sensitive-scope review), and submit for verification. Project quotas are shared by everyone using the built-in
-client; heavy users should bring their own client or a service account.
+Google classifies both Search Console scopes as non-sensitive, so the published app needs no Google
+verification, shows no unverified-app notice, and has no user cap. That holds while the consent screen has no
+logo, lists at most 10 authorized domains, and requests no sensitive or restricted scope; changing any of those
+requires verification. Project quotas are shared by everyone using the built-in client; heavy users should bring
+their own client or a service account.
 
 ## Troubleshooting
 
