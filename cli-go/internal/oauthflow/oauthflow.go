@@ -143,7 +143,7 @@ func paste(o Options, state string) (*Result, error) {
 	}
 	redirect := fmt.Sprintf("http://127.0.0.1:%d%s", port, o.Path)
 	fmt.Fprintf(o.Log, "Open this URL in a browser on any device and approve access:\n  %s\n\n", o.AuthURL(redirect, state))
-	fmt.Fprintf(o.Log, "The browser will then fail to load a 127.0.0.1 page. That is expected.\nPaste the full URL from its address bar here: ")
+	fmt.Fprintf(o.Log, "The browser will then fail to load a 127.0.0.1 page. That is expected.\nPaste the full URL from its address bar here:\n")
 	line, err := bufio.NewReader(o.Paste).ReadString('\n')
 	if err != nil && !(errors.Is(err, io.EOF) && line != "") {
 		return nil, fmt.Errorf("no redirect URL was pasted")
@@ -268,7 +268,7 @@ kbd{font-size:12px;padding:1px 6px;border:1px solid var(--line);border-bottom-wi
 <p>Return to your terminal, where gsc is finishing setup.</p>
 {{else}}<div class="icon bad"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 7.5l9 9m0-9-9 9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></div>
 <h1>Sign-in didn't finish</h1>
-<p>Run <code>gsc auth login</code> in your terminal to try again.</p>
+<p>Go back to your terminal and run the same <code>gsc auth login</code> command again.</p>
 <p class="err">{{.Detail}}</p>
 {{end}}<div class="close"><kbd>{{.CloseKey}}</kbd> closes this tab</div>
 </main>

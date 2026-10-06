@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -135,5 +136,16 @@ func TestWritesAcceptEmptyBodies(t *testing.T) {
 	}
 	if err := c.DeleteSite(context.Background(), "sc-domain:example.com"); err != nil || method != http.MethodDelete {
 		t.Fatalf("%s %v", method, err)
+	}
+}
+
+// Transport failures keep their cause for errors.Is/As (timeouts versus network
+// errors) while the message stays free of the token.
+func TestTransportErrorKeepsCause(t *testing.T) {
+	c := newTest(func(*http.Request) (*http.Response, error) { return nil, context.DeadlineExceeded })
+	_, err := c.Do(context.Background(), http.MethodGet, "/webmasters/v3/sites?access_token=tok-123", nil, nil)
+	var ue *url.Error
+	if err == nil || !errors.Is(err, context.DeadlineExceeded) || !errors.As(err, &ue) || strings.Contains(err.Error(), "tok-123") {
+		t.Fatalf("got %v", err)
 	}
 }

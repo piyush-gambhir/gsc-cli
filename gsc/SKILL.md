@@ -1,15 +1,19 @@
 ---
 name: gsc
-description: Query Google Search Console with the gsc CLI: search performance, top queries and pages, trends, period comparisons, URL inspection, sitemaps, exports, and SEO insights for a property.
+description: "Query Google Search Console with the gsc CLI: search performance, top queries and pages, trends, period comparisons, URL inspection, sitemaps, exports, and SEO insights for a property."
 ---
 
 # Google Search Console (gsc)
 
-Use the installed `gsc` binary; check subcommand `--help` for flags. The full reference is
-[commands](../docs/commands.md); login methods are in [auth](../docs/auth.md).
+Use the installed `gsc` binary. `gsc commands -o json` describes every command offline: flags, defaults,
+whether it reads or writes, and the API methods it calls. The full reference is
+[references/commands.md](references/commands.md); login methods are in [references/auth.md](references/auth.md).
 
 - Prefer `-o json --no-input`. Data is on stdout, diagnostics on stderr. Pass `--read-only` unless the user
   asked for a change.
+- Every failure exits 1 with a JSON error on stderr. Branch on its `kind`: `auth` (log in again), `permission`,
+  `not_found`, `rate_limit` (wait for `retry_after`; do not loop), `usage`, `read_only`,
+  `confirmation_required` (ask the user, then pass `--yes`), `server`, `timeout`, `network`.
 - Check `gsc auth status -o json` first (local, no API call). If not logged in, ask the user to run
   `gsc auth login`; never invent credentials. For CI, `GSC_CREDENTIALS` or `GSC_ACCESS_TOKEN` may be set.
 - Select the property with `-s` (`sc-domain:example.com`, a URL-prefix, or a bare host) or rely on the

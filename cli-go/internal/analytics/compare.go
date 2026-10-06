@@ -113,7 +113,10 @@ func (c *Comparison) MarshalJSON() ([]byte, error) {
 
 func (c *Comparison) Table() output.Table {
 	dims := c.Current.Request.Dimensions
-	t := output.Table{Columns: append(slices.Clone(dims), CompareColumns...), Human: MetricFormats}
+	// Terminal tables show current values and changes; CSV, JSON, and YAML keep the previous values too.
+	t := output.Table{Columns: append(slices.Clone(dims), CompareColumns...), Human: MetricFormats,
+		HumanColumns: append(slices.Clone(dims), "clicks", "clicks_delta", "clicks_pct", "impressions", "impressions_delta",
+			"ctr", "ctr_delta_pp", "position", "position_delta")}
 	for _, p := range c.Rows {
 		cells := make([]any, 0, len(t.Columns))
 		for j := range dims {

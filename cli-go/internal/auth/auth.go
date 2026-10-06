@@ -220,6 +220,12 @@ func scrubCredentials(s string) string {
 	return s
 }
 
+// CredentialError means no token could be obtained: a revoked or expired grant,
+// an unusable key, or a failed impersonation. Callers report it as an auth failure.
+type CredentialError struct{ msg string }
+
+func (e *CredentialError) Error() string { return e.msg }
+
 func friendlyTokenError(err error) error {
 	var re *oauth2.RetrieveError
 	if errors.As(err, &re) {
@@ -228,12 +234,12 @@ func friendlyTokenError(err error) error {
 			desc += ": " + scrubCredentials(re.ErrorDescription)
 		}
 		if re.ErrorCode == "invalid_grant" {
-			return fmt.Errorf("Google rejected the saved credentials (%s). The grant was revoked or expired; log in again", desc)
+			return &CredentialError{fmt.Sprintf("Google rejected the saved credentials (%s). The grant was revoked or expired; log in again", desc)}
 		}
 		if desc == "" && re.Response != nil {
 			desc = re.Response.Status
 		}
-		return fmt.Errorf("token request failed: %s", desc)
+		return &CredentialError{"token request failed: " + desc}
 	}
 	// Return bare context errors: a wrapped one could carry credential text.
 	if errors.Is(err, context.Canceled) {
@@ -242,5 +248,5 @@ func friendlyTokenError(err error) error {
 	if errors.Is(err, context.DeadlineExceeded) {
 		return context.DeadlineExceeded
 	}
-	return errors.New("credential error: " + scrubCredentials(err.Error()))
+	return &CredentialError{"credential error: " + scrubCredentials(err.Error())}
 }

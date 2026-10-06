@@ -15,7 +15,9 @@ gsc top queries -o json                   # JSON for scripts and agents
 gsc query -d page --limit 5000 -o csv > pages.csv    # spreadsheet-ready
 ```
 
-Tables show CTR as a percentage and positions to two decimals. JSON, YAML, and CSV keep the raw values:
+Tables show CTR as a percentage and positions to two decimals, shorten timestamps, and keep wide results
+readable: comparisons show current values and changes, sitemaps omit `isSitemapsIndex`, and inspections
+show the URL, verdict, coverage, last crawl, canonical, and error. JSON, YAML, and CSV keep the raw values:
 `ctr` is a ratio such as `0.0249`. In CSV, text starting with `=`, `+`, `-`, or `@` gets a leading
 apostrophe so a spreadsheet never runs a search query as a formula.
 
@@ -95,15 +97,33 @@ The example is abridged. A row missing from one period is `null`, never zero. `c
 
 ## Errors
 
-Every failure exits with status `1`. With `-o json` or `-o yaml`, stderr carries a structured error:
+Every failure exits with status `1`, like the other CLIs in this suite. With `-o json` or `-o yaml`, stderr
+carries a structured error:
 
 ```json
 {
   "error": "Search Console API: User does not have sufficient permission for site 'sc-domain:example.com'. See also: https://support.google.com/webmasters/answer/2451999. (HTTP 403, forbidden). The signed-in identity lacks access to this property; check gsc sites list or add the user in Search Console > Settings > Users and permissions",
+  "kind": "permission",
   "reason": "forbidden",
   "status": 403
 }
 ```
+
+`kind` classifies every failure so agents can branch without parsing the message:
+
+| `kind` | Meaning |
+| --- | --- |
+| `usage` | Unknown command or flag, or wrong arguments |
+| `auth` | Not logged in, or the saved credentials no longer work |
+| `permission` | The identity lacks access to the property (HTTP 403) |
+| `not_found` | Google reports no such property or sitemap (HTTP 404) |
+| `rate_limit` | Quota or rate limit (HTTP 429); wait for `retry_after` |
+| `invalid_request` | Google rejected the request (other HTTP 4xx) |
+| `server` | Google failed (HTTP 5xx) |
+| `read_only` | `--read-only` or a read-only scope blocked a write |
+| `confirmation_required` | A destructive command needs `--yes` without a terminal |
+| `timeout`, `network`, `cancelled` | The request did not complete |
+| `error` | Anything else |
 
 `reason` is Google's error reason when it sends one, and `retry_after` is added when Google sends a
 `Retry-After` header. The message ends with a hint for the common cases:

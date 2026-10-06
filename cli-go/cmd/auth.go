@@ -110,7 +110,7 @@ func randomGeneration() string {
 
 func (a *app) loginOAuth(ctx context.Context, name string, f loginFlags, scope string) error {
 	if a.noInput {
-		return errors.New("browser login needs interaction and --no-input is set; for automation use GSC_ACCESS_TOKEN, GSC_CREDENTIALS, or gsc auth login --service-account KEY.json")
+		return withKind(kindAuth, errors.New("browser login needs interaction and --no-input is set; for automation use GSC_ACCESS_TOKEN, GSC_CREDENTIALS, or gsc auth login --service-account KEY.json"))
 	}
 	var cl auth.Client
 	var err error
@@ -429,6 +429,9 @@ func (a *app) status() *cobra.Command {
 				out["profile"] = name
 				out["auth"] = p.Auth
 				out["account"] = nullIfEmpty(p.Account)
+				if p.Impersonate != "" {
+					out["impersonate"] = p.Impersonate
+				}
 				out["scopes"] = shortScopes(p.Scopes)
 				out["write_access"] = len(p.Scopes) == 0 || auth.HasWriteScope(p.Scopes)
 				out["site"] = nullIfEmpty(p.Site)
@@ -440,10 +443,10 @@ func (a *app) status() *cobra.Command {
 					out["credential_source"] = "profile:" + name
 				}
 			} else if name != "" {
-				return fmt.Errorf("profile %q not found; run gsc auth login --profile %s", name, name)
+				return withKind(kindAuth, fmt.Errorf("profile %q not found; run gsc auth login --profile %s", name, name))
 			}
 			if _, set := out["credential_source"]; !set {
-				return errors.New("not logged in; run gsc auth login (or set GSC_ACCESS_TOKEN or GSC_CREDENTIALS)")
+				return withKind(kindAuth, fmt.Errorf("not logged in (no profile in %s); run gsc auth login (or set GSC_ACCESS_TOKEN or GSC_CREDENTIALS)", path))
 			}
 			out["read_only_mode"] = a.readOnly
 			if verify {
@@ -612,7 +615,7 @@ func (a *app) configCmd() *cobra.Command {
 	use := a.useProfile()
 	use.Use, use.Aliases = "use-profile NAME", nil
 	show := a.status()
-	show.Use = "show"
+	show.Use, show.Aliases = "show", []string{"view"}
 	c.AddCommand(list, use, show)
 	return c
 }

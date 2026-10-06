@@ -9,6 +9,8 @@ Use `gsc --help` and `docs/commands.md` for current flags. See `gsc/SKILL.md` fo
   paste flow, BYO client, service accounts, ADC, impersonation, credentials files, raw tokens. Refresh tokens
   live in the OS keychain; plaintext only with `--insecure-storage`.
 - Tests use fake transports, `keyring.MockInit()`, and temporary configs. Never contact Google from tests.
+- Every failure exits 1. Tag errors gsc raises itself with `withKind` (cmd/errkind.go) so the JSON error's
+  `kind` stays accurate; `gsc commands` and `gsc api methods` read the annotations and `internal/coverage`.
 - Classify commands by effect, not HTTP method: `query` and `inspect` POST but only read. New commands need
   `mutates`, `writes-local`, or `interactive` annotations; `TestAgentSafetyCommandManifest` pins the set.
 - `TestAPICoverage` ties the vendored discovery snapshot, `internal/coverage`, the command tree, and

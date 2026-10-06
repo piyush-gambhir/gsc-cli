@@ -33,7 +33,8 @@ type inspectReport struct {
 var inspectColumns = []string{"url", "verdict", "coverage_state", "indexing_state", "last_crawl_time", "page_fetch_state", "robots_txt_state", "google_canonical", "user_canonical", "crawled_as", "rich_results", "error"}
 
 func (r *inspectReport) Table() output.Table {
-	t := output.Table{Columns: inspectColumns}
+	t := output.Table{Columns: inspectColumns, Human: map[string]func(any) string{"last_crawl_time": output.Timestamp},
+		HumanColumns: []string{"url", "verdict", "coverage_state", "last_crawl_time", "google_canonical", "error"}}
 	for _, in := range r.Results {
 		idx, _ := in.Result["indexStatusResult"].(map[string]any)
 		rich, _ := in.Result["richResultsResult"].(map[string]any)

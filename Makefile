@@ -1,3 +1,3 @@
-.PHONY: build test vet install docs
-build test vet install docs:
+.PHONY: build test vet lint install docs clean
+build test vet lint install docs clean:
 	$(MAKE) -C cli-go $@

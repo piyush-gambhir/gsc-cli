@@ -5,8 +5,9 @@ Use Go 1.26+ (toolchain Go 1.27.1). From the repository root:
 ```bash
 make test
 make vet
+make lint    # Staticcheck, as in CI
 make build
-make docs
+make docs    # regenerates docs/commands.md and the skill's bundled references
 ```
 
 Run `gofmt -w .` within `cli-go/` after Go changes. HTTP tests must use fake transports or local test servers

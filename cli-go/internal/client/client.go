@@ -66,6 +66,16 @@ func (e *APIError) Error() string {
 }
 
 // Quota reports whether the error is a rate or quota failure (403 or 429).
+// requestError is a transport failure. Its message is scrubbed of the URL and
+// token, and Unwrap keeps the cause so callers can tell timeouts from network errors.
+type requestError struct {
+	msg   string
+	cause error
+}
+
+func (e *requestError) Error() string { return e.msg }
+func (e *requestError) Unwrap() error { return e.cause }
+
 func (e *APIError) Quota() bool {
 	switch e.Reason {
 	case "rateLimitExceeded", "userRateLimitExceeded", "quotaExceeded", "dailyLimitExceeded":
@@ -234,7 +244,7 @@ func (c *Client) Do(ctx context.Context, method, path string, query url.Values, 
 	res, err := c.HTTP.Do(req)
 	if err != nil {
 		msg := strings.ReplaceAll(err.Error(), target, SafeURL(target))
-		return nil, fmt.Errorf("request failed: %s", strings.ReplaceAll(msg, token, "[REDACTED]"))
+		return nil, &requestError{"request failed: " + strings.ReplaceAll(msg, token, "[REDACTED]"), err}
 	}
 	defer res.Body.Close()
 	if c.Log != nil {

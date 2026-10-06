@@ -22,7 +22,7 @@ with Google.
 curl -fsSL https://raw.githubusercontent.com/piyush-gambhir/gsc-cli/main/install.sh | sh
 ```
 
-Installs to `~/.local/bin` (override with `INSTALL_DIR`; pin with `VERSION=v0.1.2`) after verifying the
+Installs to `~/.local/bin` (override with `INSTALL_DIR`; pin with `VERSION=v0.1.5`) after verifying the
 SHA-256 checksum. Windows users download the ZIP from the [releases page](https://github.com/piyush-gambhir/gsc-cli/releases).
 
 Ghostscript and Gambit Scheme also install a program named `gsc`. The installer warns if another `gsc` comes
@@ -59,9 +59,9 @@ In an interactive terminal, `gsc` checks the github.com release page for a new r
 command's output, prints a notice on stderr:
 
 ```text
-A new version of gsc is available: v0.1.1 -> v0.1.2
+A new version of gsc is available: v0.1.4 -> v0.1.5
 Update with: gsc update
-Release notes: https://github.com/piyush-gambhir/gsc-cli/releases/tag/v0.1.2
+Release notes: https://github.com/piyush-gambhir/gsc-cli/releases/tag/v0.1.5
 ```
 
 It never checks (no network, no output) when stderr is not a terminal, when `CI` is set, with `--quiet` or
@@ -159,7 +159,9 @@ plaintext silently.
 `-o table` (default), `-o json`, `-o yaml`, or `-o csv` (row-shaped results; text starting with `=`, `+`,
 `-`, `@` gets a leading apostrophe so spreadsheets do not run it as a formula). JSON for analytics commands
 is an envelope with the site, dates, type, data state, completeness, and rows. Errors in JSON/YAML mode are
-structured on stderr; the exit status is 0 on success and 1 on failure.
+structured on stderr with a `kind` (`auth`, `permission`, `not_found`, `rate_limit`, `usage`, ...); the exit
+status is 0 on success and 1 on failure. `gsc commands -o json` describes every command, flag, and effect
+offline, and `gsc api methods -o json` lists the API methods and the commands that call them.
 
 `--read-only` (or `GSC_READ_ONLY=1`) blocks every remote write, local credential change, and self-update.
 `--dry-run` prints a write request without sending it (`--read-only` refuses it even then). Destructive commands and `update` confirm, or need
@@ -181,7 +183,7 @@ structured on stderr; the exit status is 0 on success and 1 on failure.
 All 10 active Search Console API methods are implemented; the retired Mobile-Friendly Test and the separate
 Indexing API are skipped with reasons. [docs/api-coverage.md](docs/api-coverage.md) maps every method to its
 commands, and [docs/compatibility.md](docs/compatibility.md) records the pinned API snapshot (discovery
-revision 20260923, captured 2026-10-03) and how to refresh it.
+revision 20261005, captured 2026-10-07) and how to refresh it.
 
 Quotas that matter: Search Analytics 1,200 queries per minute per site plus unpublished load quotas (page plus
 query grouping over long ranges is expensive), and URL Inspection 2,000 per day and 600 per minute per site.
@@ -200,6 +202,7 @@ The docs site lives in `web/` (Next.js and Fumadocs, exported as static files). 
 coverage pages are generated from `docs/` at build time. `cd web && pnpm install && pnpm dev` runs it locally;
 `scripts/deploy-docs.sh` deploys it.
 
-Layout follows the CLI suite: Go in `cli-go/`, docs in `docs/`, agent skill in `gsc/`, docs site in `web/`,
+Layout follows the CLI suite: Go in `cli-go/`, docs in `docs/`, agent skill in `gsc/` (install with
+`npx skills add piyush-gambhir/gsc-cli@gsc`), docs site in `web/`,
 workflows in `.github/`. See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md),
 [CLAUDE.md](CLAUDE.md), [PLAN.md](PLAN.md), and [RESEARCH.md](RESEARCH.md). MIT licensed.

@@ -1,7 +1,7 @@
 # API coverage
 
 Every method in the pinned Google API snapshots, mapped to the `gsc` commands that call it, or listed as
-skipped with the reason. The snapshots (discovery documents, revision `20260923`, captured 2026-10-03) are
+skipped with the reason. The snapshots (discovery documents, revisions `20261005` (Search Console) and `20260923` (Indexing), captured 2026-10-07) are
 vendored in `cli-go/internal/coverage/testdata/`; see [compatibility.md](compatibility.md) for hashes and the
 refresh procedure.
 
@@ -35,6 +35,8 @@ Every request field of `searchanalytics.query` is reachable from `gsc query`: di
 `startRow` (pagination). `--request-file` accepts a raw body for anything flags do not express.
 
 `gsc api METHOD PATH` can call any of these methods directly, and any method Google adds later.
+`gsc api methods -o json` prints this table offline (method, HTTP verb, path, read or write effect, status,
+and commands).
 
 ## Indexing API v3 (skipped by decision)
 

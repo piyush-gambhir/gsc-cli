@@ -39,8 +39,8 @@ jobs:
       - run: go build ./...
       - name: Verify generated docs
         run: |
-          go run ./tools/gendocs > ../docs/commands.md
-          git diff --exit-code -- ../docs/commands.md
+          make docs
+          git diff --exit-code -- ../docs/commands.md ../gsc/references
       - name: Verify source install
         run: |
           install_dir="$(mktemp -d)"
@@ -65,9 +65,11 @@ jobs:
           cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm audit --prod --audit-level=high
+      - run: pnpm peers check
       - run: pnpm types:check
       - run: pnpm build:cloudflare
       - run: pnpm test:search
+      - run: pnpm test:llms
   release-check:
     runs-on: ubuntu-latest
     steps:

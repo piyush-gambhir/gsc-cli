@@ -38,7 +38,7 @@ func (a *app) update() *cobra.Command {
 		Annotations: map[string]string{annWritesLocal: "conditional", annInteractive: "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if a.readOnly && !check {
-				return fmt.Errorf("self-update is blocked by --read-only; use update --check")
+				return withKind(kindReadOnly, fmt.Errorf("self-update is blocked by --read-only; use update --check"))
 			}
 			current := build.Version
 			exe, err := a.executable()
@@ -75,7 +75,7 @@ func (a *app) update() *cobra.Command {
 					from, to, filepath.Dir(exe), update.SourceUpdate, r.URL))
 			}
 			if a.noInput && !a.yes && !a.dryRun {
-				return fmt.Errorf("gsc update needs confirmation; pass --yes to update to %s without a prompt", to)
+				return withKind(kindConfirmation, fmt.Errorf("gsc update needs confirmation; pass --yes to update to %s without a prompt", to))
 			}
 			goos := runtime.GOOS
 			if err := update.CheckWritable(exe, goos); err != nil {

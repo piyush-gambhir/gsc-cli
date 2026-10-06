@@ -62,6 +62,7 @@ const (
 	annMutates     = "mutates"      // "true": remote write; "conditional": decided at run time
 	annWritesLocal = "writes-local" // changes local credentials, config, or the binary
 	annInteractive = "interactive"  // may prompt or open a browser
+	annGroup       = "group"        // only groups subcommands; runs just to print help or reject a typo
 )
 
 func envBool(name string) bool { s := os.Getenv(name); return s == "1" || strings.EqualFold(s, "true") }
@@ -84,23 +85,23 @@ func newRoot(a *app) *cobra.Command {
 		SilenceUsage: true, SilenceErrors: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if !output.Valid(a.format) {
-				return fmt.Errorf("unsupported output %q; use table, json, yaml, or csv", a.format)
+				return withKind(kindUsage, fmt.Errorf("unsupported output %q; use table, json, yaml, or csv", a.format))
 			}
 			if a.timeout <= 0 {
-				return fmt.Errorf("--timeout must be positive")
+				return withKind(kindUsage, fmt.Errorf("--timeout must be positive"))
 			}
 			if a.readOnly {
 				if cmd.Annotations[annMutates] == "true" {
-					return fmt.Errorf("%s changes Search Console data and is blocked by --read-only", cmd.CommandPath())
+					return withKind(kindReadOnly, fmt.Errorf("%s changes Search Console data and is blocked by --read-only", cmd.CommandPath()))
 				}
 				if cmd.Annotations[annWritesLocal] == "true" {
-					return fmt.Errorf("%s changes local state and is blocked by --read-only", cmd.CommandPath())
+					return withKind(kindReadOnly, fmt.Errorf("%s changes local state and is blocked by --read-only", cmd.CommandPath()))
 				}
 			}
 			// These commands have no preview, so running them would ignore --dry-run
 			// (logout --revoke would revoke at Google). update handles --dry-run itself.
 			if a.dryRun && cmd.Annotations[annWritesLocal] == "true" {
-				return fmt.Errorf("%s has no --dry-run preview; run it without --dry-run", cmd.CommandPath())
+				return withKind(kindUsage, fmt.Errorf("%s has no --dry-run preview; run it without --dry-run", cmd.CommandPath()))
 			}
 			a.startUpdateCheck(cmd)
 			return nil
@@ -125,7 +126,7 @@ func newRoot(a *app) *cobra.Command {
 	f.BoolVarP(&a.yes, "yes", "y", false, "Confirm destructive commands and updates without prompting")
 
 	root.AddCommand(a.auth(), a.configCmd(), a.sites(), a.sitemaps(), a.query(), a.performance(), a.top(), a.trend(),
-		a.freshness(), a.inspect(), a.export(), a.insights(), a.api(), a.doctor(), a.update())
+		a.freshness(), a.inspect(), a.export(), a.insights(), a.api(), a.doctor(), a.update(), a.commandsCmd())
 	login := a.login()
 	login.Use = "login"
 	login.Short = "Alias of auth login"
@@ -155,17 +156,34 @@ func newRoot(a *app) *cobra.Command {
 		case "powershell":
 			return root.GenPowerShellCompletionWithDesc(a.out)
 		}
-		return fmt.Errorf("unsupported shell %q", args[0])
+		return withKind(kindUsage, fmt.Errorf("unsupported shell %q", args[0]))
 	}})
 	root.CompletionOptions.DisableDefaultCmd = true
 	rejectUnknownSubcommands(root)
 	addExamples(root)
+	initHelpFlags(root)
 	return root
+}
+
+// initHelpFlags registers --help up front (Cobra adds it lazily, after looking
+// up the command, so `gsc --help -o json` read -o as --help's value) and marks
+// flag and argument errors as usage errors.
+func initHelpFlags(c *cobra.Command) {
+	c.InitDefaultHelpFlag()
+	c.SetFlagErrorFunc(func(_ *cobra.Command, err error) error { return withKind(kindUsage, err) })
+	if args := c.Args; args != nil {
+		c.Args = func(cmd *cobra.Command, a []string) error { return withKind(kindUsage, args(cmd, a)) }
+	}
+	for _, sub := range c.Commands() {
+		initHelpFlags(sub)
+	}
 }
 
 // rejectUnknownSubcommands makes command groups (sites, insights, ...) fail on
 // an unknown subcommand. Cobra checks only at the root, so `gsc sites lsit`
 // would otherwise print help and exit 0.
+func isGroup(c *cobra.Command) bool { return c.Annotations[annGroup] == "true" }
+
 func rejectUnknownSubcommands(c *cobra.Command) {
 	for _, sub := range c.Commands() {
 		rejectUnknownSubcommands(sub)
@@ -173,6 +191,10 @@ func rejectUnknownSubcommands(c *cobra.Command) {
 	if !c.HasParent() || !c.HasSubCommands() || c.Runnable() {
 		return
 	}
+	if c.Annotations == nil {
+		c.Annotations = map[string]string{}
+	}
+	c.Annotations[annGroup] = "true"
 	c.Args = cobra.ArbitraryArgs
 	c.SuggestionsMinimumDistance = 2 // Cobra's root default; SuggestionsFor alone uses 0
 	c.RunE = func(cmd *cobra.Command, args []string) error {
@@ -183,7 +205,7 @@ func rejectUnknownSubcommands(c *cobra.Command) {
 		if s := cmd.SuggestionsFor(args[0]); len(s) > 0 {
 			msg += "\n\nDid you mean this?\n\t" + strings.Join(s, "\n\t")
 		}
-		return errors.New(msg)
+		return withKind(kindUsage, errors.New(msg))
 	}
 }
 
@@ -235,7 +257,7 @@ func (a *app) run(ctx context.Context, args []string) int {
 			message = strings.ReplaceAll(message, secret, "[REDACTED]")
 		}
 	}
-	payload := map[string]any{"error": message}
+	payload := map[string]any{"error": message, "kind": errorKind(err)}
 	var apiErr *client.APIError
 	if errors.As(err, &apiErr) {
 		payload["status"] = apiErr.Status
@@ -362,11 +384,11 @@ func (a *app) resolveCreds(ctx context.Context) (*creds, error) {
 	}
 	name := cfg.SelectProfile(a.profile)
 	if name == "" {
-		return nil, errors.New("not logged in; run gsc auth login (or set GSC_ACCESS_TOKEN or GSC_CREDENTIALS)")
+		return nil, withKind(kindAuth, errors.New("not logged in; run gsc auth login (or set GSC_ACCESS_TOKEN or GSC_CREDENTIALS)"))
 	}
 	p, ok := cfg.Profiles[name]
 	if !ok {
-		return nil, fmt.Errorf("profile %q not found; run gsc auth login --profile %s", name, name)
+		return nil, withKind(kindAuth, fmt.Errorf("profile %q not found; run gsc auth login --profile %s", name, name))
 	}
 	c := &creds{source: "profile:" + name, profileName: name, profile: &p}
 	switch p.Auth {
@@ -453,7 +475,7 @@ func (a *app) resolveSite(ctx context.Context, c *client.Client, explicit string
 // read-only scope.
 func requireWriteScope(c *creds) error {
 	if c.profile != nil && len(c.profile.Scopes) > 0 && !auth.HasWriteScope(c.profile.Scopes) {
-		return fmt.Errorf("profile %q has read-only Search Console access; run gsc auth login --profile %s (without --scope readonly) to allow writes", c.profileName, c.profileName)
+		return withKind(kindReadOnly, fmt.Errorf("profile %q has read-only Search Console access; run gsc auth login --profile %s (without --scope readonly) to allow writes", c.profileName, c.profileName))
 	}
 	return nil
 }
@@ -480,7 +502,7 @@ func (a *app) confirm(question string) error {
 		return nil
 	}
 	if a.noInput || !a.isTerminal() {
-		return fmt.Errorf("%s Refusing without --yes", question)
+		return withKind(kindConfirmation, fmt.Errorf("%s Refusing without --yes", question))
 	}
 	fmt.Fprintf(a.errOut, "%s [y/N]: ", question)
 	line, _ := a.reader().ReadString('\n')

@@ -67,9 +67,16 @@ latest versions.
 
 ## Agent skill and LLM files
 
-- The agent skill lives at
-  [`gsc/SKILL.md`](https://github.com/piyush-gambhir/gsc-cli/blob/main/gsc/SKILL.md). Copy it into
-  your agent's skills directory.
+- Install the agent skill with `npx skills add piyush-gambhir/gsc-cli@gsc` (Claude Code, Codex, Cursor,
+  and other agents that read `~/.agents/skills`), or copy the
+  [`gsc/`](https://github.com/piyush-gambhir/gsc-cli/tree/main/gsc) directory into your agent's skills
+  directory. It bundles the command and auth references, so it works on its own.
+- `gsc commands -o json` describes every command offline: usage, flags and defaults, whether it reads or
+  writes (`read`, `remote_write`, `local_write`), whether it may prompt, the API methods it calls, and
+  examples. `gsc api methods -o json` is the same map from the API side.
+- Failures exit `1` with a structured error whose `kind` (`auth`, `permission`, `not_found`,
+  `rate_limit`, `usage`, `read_only`, `confirmation_required`, ...) says what to do next; see
+  [Output formats](/docs/output-formats#errors).
 - [`llms.txt`](https://projects.piyushgambhir.com/gsc-cli/llms.txt) indexes these docs, and
   [`llms-full.txt`](https://projects.piyushgambhir.com/gsc-cli/llms-full.txt) contains all of them,
   including the full command reference.

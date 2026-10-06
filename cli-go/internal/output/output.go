@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 	"unicode"
 
 	"go.yaml.in/yaml/v3"
@@ -21,6 +23,9 @@ type Table struct {
 	Columns []string
 	Rows    [][]any
 	Human   map[string]func(any) string
+	// HumanColumns, when set, is the subset of Columns a terminal table shows.
+	// CSV always writes every column.
+	HumanColumns []string
 }
 
 // Tabler is implemented by results with a natural row shape. JSON and YAML
@@ -41,6 +46,7 @@ func Print(w io.Writer, format string, data any) error {
 	case "json":
 		e := json.NewEncoder(w)
 		e.SetIndent("", "  ")
+		e.SetEscapeHTML(false) // keep "<", ">", "&" readable; output is never embedded in HTML
 		return e.Encode(data)
 	case "yaml":
 		return printYAML(w, data)
@@ -154,23 +160,30 @@ func writeTable(w io.Writer, t Table) error {
 		_, err := fmt.Fprintln(w, "No results.")
 		return err
 	}
-	tw := tabwriter.NewWriter(w, 0, 4, 2, ' ', 0)
-	headers := make([]string, len(t.Columns))
+	show := make([]int, 0, len(t.Columns)) // indexes of the columns to print
 	for i, c := range t.Columns {
-		headers[i] = Cell(c)
+		if len(t.HumanColumns) == 0 || slices.Contains(t.HumanColumns, c) {
+			show = append(show, i)
+		}
+	}
+	tw := tabwriter.NewWriter(w, 0, 4, 2, ' ', 0)
+	headers := make([]string, len(show))
+	for j, i := range show {
+		headers[j] = Cell(t.Columns[i])
 	}
 	fmt.Fprintln(tw, strings.Join(headers, "\t"))
 	for _, row := range t.Rows {
-		cells := make([]string, len(t.Columns))
-		for i, c := range t.Columns {
+		cells := make([]string, len(show))
+		for j, i := range show {
+			c := t.Columns[i]
 			var v any
 			if i < len(row) {
 				v = row[i]
 			}
 			if f := t.Human[c]; f != nil && v != nil {
-				cells[i] = Cell(f(v))
+				cells[j] = Cell(f(v))
 			} else {
-				cells[i] = Cell(v)
+				cells[j] = Cell(v)
 			}
 		}
 		fmt.Fprintln(tw, strings.Join(cells, "\t"))
@@ -275,6 +288,16 @@ func Fixed2(v any) string {
 		return Cell(v)
 	}
 	return strconv.FormatFloat(f, 'f', 2, 64)
+}
+
+// Timestamp shortens an RFC 3339 time to "2006-01-02 15:04" UTC for tables.
+func Timestamp(v any) string {
+	if s, ok := v.(string); ok {
+		if t, err := time.Parse(time.RFC3339, s); err == nil {
+			return t.UTC().Format("2006-01-02 15:04")
+		}
+	}
+	return Cell(v)
 }
 
 // Points formats a value already expressed in percentage points.

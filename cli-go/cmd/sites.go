@@ -256,7 +256,8 @@ func sitemapList(m []map[string]any) sitemapRows { return sitemapRows(m) }
 
 func (r sitemapRows) Table() output.Table {
 	cols := []string{"path", "type", "isPending", "isSitemapsIndex", "lastSubmitted", "lastDownloaded", "warnings", "errors"}
-	t := output.Table{Columns: cols}
+	t := output.Table{Columns: cols, Human: map[string]func(any) string{"lastSubmitted": output.Timestamp, "lastDownloaded": output.Timestamp},
+		HumanColumns: []string{"path", "type", "isPending", "lastSubmitted", "lastDownloaded", "warnings", "errors"}}
 	for _, m := range r {
 		row := make([]any, len(cols))
 		for i, c := range cols {

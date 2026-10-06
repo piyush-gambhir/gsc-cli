@@ -62,3 +62,13 @@ func TestPreliminaryDataNoteForTables(t *testing.T) {
 		t.Fatalf("json: code=%d err=%q", r.code, r.errOut)
 	}
 }
+
+// --help before a flag with a value still shows help (Cobra registers --help
+// lazily, so it used to swallow -o and fail on "json" as a command).
+func TestHelpBeforeValueFlag(t *testing.T) {
+	isolate(t)
+	f := newFake(t)
+	if r := cli(t, f, now, "", "--help", "-o", "json"); r.code != 0 || !strings.Contains(r.out, "Available Commands") {
+		t.Fatalf("code=%d out=%q err=%q", r.code, r.out, r.errOut)
+	}
+}

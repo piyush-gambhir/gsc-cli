@@ -24,6 +24,7 @@ var examples = map[string][]string{
 	"gsc doctor":                     {"gsc doctor", "gsc doctor --online -o json"},
 	"gsc freshness":                  {"gsc freshness", "gsc freshness --type discover -o json"},
 	"gsc version":                    {"gsc version", "gsc version -o json"},
+	"gsc commands":                   {"gsc commands", `gsc commands -o json | jq -r '.commands[] | select(.effect != "read") | .command'`},
 	"gsc sites list":                 {"gsc sites list", "gsc sites list -o json"},
 	"gsc sites get":                  {"gsc sites get", "gsc sites get https://www.example.com/ -o json"},
 	"gsc sites use":                  {"gsc sites use sc-domain:example.com", "gsc sites use www.example.com"},

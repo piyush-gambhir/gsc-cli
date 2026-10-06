@@ -14,7 +14,7 @@ func TestEveryCommandHasExamples(t *testing.T) {
 	var walk func(*cobra.Command)
 	walk = func(c *cobra.Command) {
 		for _, sub := range c.Commands() {
-			if sub.Runnable() && !sub.HasSubCommands() {
+			if sub.Runnable() && !isGroup(sub) {
 				if sub.Example == "" {
 					t.Errorf("%s has no Example", sub.CommandPath())
 				} else if !strings.Contains(sub.Example, sub.CommandPath()) {

@@ -17,7 +17,7 @@ LDFLAGS := -s -w -X $(MODULE)/internal/build.Version=$(VERSION) -X $(MODULE)/int
 # Like go install: $GOBIN when set, else $(go env GOPATH)/bin.
 INSTALL_DIR ?= $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
 
-.PHONY: build install test vet fmt tidy docs
+.PHONY: build install test vet lint fmt tidy docs clean
 build:
 	go build -ldflags "$(LDFLAGS)" -o bin/$(BINARY) .
 install:
@@ -27,9 +27,19 @@ test:
 	go test -race -count=1 ./...
 vet:
 	go vet ./...
+# Same Staticcheck version and checks as CI.
+lint:
+	go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 -checks=all,-ST1000,-ST1003,-ST1005 ./...
 fmt:
 	gofmt -w .
 tidy:
 	go mod tidy
+# The skill bundles copies of the command and auth references so gsc/ works on its own.
 docs:
 	go run ./tools/gendocs > ../docs/commands.md
+	mkdir -p ../gsc/references
+	cp ../docs/commands.md ../gsc/references/commands.md
+	cp ../docs/auth.md ../gsc/references/auth.md
+clean:
+	rm -rf bin
+	go clean
