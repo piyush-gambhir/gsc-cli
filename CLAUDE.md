@@ -27,5 +27,8 @@ Use `gsc --help` and `docs/commands.md` for current flags. See `gsc/SKILL.md` fo
 - The site's privacy policy (`web/app/(legal)/privacy/page.tsx`) and home page are what Google's OAuth
   verification reviews. Update them, and the policy's effective date, when scopes, stored data, or network
   calls change.
-- Releases: bump `cli-go/VERSION` in a pull request; merging to `main` tags and publishes it (see
-  CONTRIBUTING.md). Never push release tags by hand. `main` requires pull requests and passing checks.
+- Work directly on `main`: commit (signed) and push there, no branches or pull requests. The owner's admin
+  role bypasses the ruleset, so run `make test` and `make vet` before pushing because CI checks no longer
+  gate the push. Outside contributors still use pull requests (CONTRIBUTING.md).
+- Releases: bump `cli-go/VERSION`; pushing it to `main` tags and publishes it. Never push release tags by
+  hand.
