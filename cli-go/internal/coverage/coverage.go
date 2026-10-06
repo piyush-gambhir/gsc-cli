@@ -14,13 +14,13 @@ const Captured = "2026-10-03"
 
 var Snapshots = []Snapshot{
 	{
-		File: "searchconsole-v1.discovery.json", API: "Search Console API v1", Revision: "20260923",
-		SHA256: "4de75278f7d4599b5f437d7b24dbb1957fa5c333d445945de97b3c6bdc4dc322",
+		File: "searchconsole-v1.discovery.json", API: "Search Console API v1", Revision: "20261005",
+		SHA256: "6ccfa7a88caf35a3f6beb7ab3b7fbe7cae44b7e67f8cf7a02f4e19ccd226b3ff",
 		Source: "https://searchconsole.googleapis.com/$discovery/rest?version=v1",
 	},
 	{
 		File: "indexing-v3.discovery.json", API: "Indexing API v3", Revision: "20260923",
-		SHA256: "aed76b26295ecd5c5ef71aadcd02d404c633b13641ef7eb5b06a52386e30514d",
+		SHA256: "3e9bcc87a98ba4768c97f53feddb822d36cfc6a4a1911b2adc35229682116b26",
 		Source: "https://indexing.googleapis.com/$discovery/rest?version=v3",
 	},
 }

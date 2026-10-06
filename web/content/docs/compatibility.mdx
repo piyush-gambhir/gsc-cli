@@ -9,12 +9,12 @@ show `https://www.googleapis.com/`, which `gsc` does not use.
 ## Pinned API snapshot
 
 `gsc` is built and tested against Google's discovery documents, captured from Google's live discovery
-service on 2026-10-03 and vendored unchanged in the repository. A coverage test checks their SHA-256 and
+service on 2026-10-07 and vendored unchanged in the repository. A coverage test checks their SHA-256 and
 revision on every test run.
 
 | API | Discovery revision | Methods |
 | --- | --- | --- |
-| Search Console API v1 | `20260923` | 11: the 10 active methods `gsc` implements, and the retired Mobile-Friendly Test |
+| Search Console API v1 | `20261005` | 11: the 10 active methods `gsc` implements, and the retired Mobile-Friendly Test |
 | Indexing API v3 | `20260923` | 2, skipped by decision |
 
 The test fails when a snapshot method has no command or skip reason, or when a mapped command does not

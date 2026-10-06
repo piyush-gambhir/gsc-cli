@@ -5,14 +5,14 @@ which snapshot, where it came from, and how to move to a newer one.
 
 ## Pinned snapshot
 
-Captured **2026-10-03** from Google's live discovery service. The files are vendored unchanged in
+Captured **2026-10-07** from Google's live discovery service. The files are vendored unchanged in
 `cli-go/internal/coverage/testdata/`, and `TestAPICoverage` checks their SHA-256 and revision on every test
 run.
 
 | API | Discovery revision | Source | Vendored file | SHA-256 |
 | --- | --- | --- | --- | --- |
-| Search Console API v1 | `20260923` | `https://searchconsole.googleapis.com/$discovery/rest?version=v1` | `searchconsole-v1.discovery.json` | `4de75278f7d4599b5f437d7b24dbb1957fa5c333d445945de97b3c6bdc4dc322` |
-| Indexing API v3 (mapped as skipped) | `20260923` | `https://indexing.googleapis.com/$discovery/rest?version=v3` | `indexing-v3.discovery.json` | `aed76b26295ecd5c5ef71aadcd02d404c633b13641ef7eb5b06a52386e30514d` |
+| Search Console API v1 | `20261005` | `https://searchconsole.googleapis.com/$discovery/rest?version=v1` | `searchconsole-v1.discovery.json` | `6ccfa7a88caf35a3f6beb7ab3b7fbe7cae44b7e67f8cf7a02f4e19ccd226b3ff` |
+| Indexing API v3 (mapped as skipped) | `20260923` | `https://indexing.googleapis.com/$discovery/rest?version=v3` | `indexing-v3.discovery.json` | `3e9bcc87a98ba4768c97f53feddb822d36cfc6a4a1911b2adc35229682116b26` |
 
 The Search Console discovery document lists 11 methods: the 10 active ones `gsc` implements and the retired
 Mobile-Friendly Test. Its service root is `https://searchconsole.googleapis.com/`; older method pages still
