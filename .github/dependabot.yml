@@ -24,3 +24,7 @@ updates:
       web-dependencies:
         patterns: ['*']
         update-types: [minor, patch]
+    ignore:
+      # fumadocs-core must match the fumadocs-ui alias (npm:@fumadocs/base-ui@x)
+      # exactly, and Dependabot cannot update alias specs: bump both by hand.
+      - dependency-name: fumadocs-core
