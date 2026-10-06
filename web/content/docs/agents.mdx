@@ -39,7 +39,7 @@ count as reads; every other request is a write, blocked by `--read-only` and pri
 | --- | --- | --- |
 | `--read-only` | `GSC_READ_ONLY=1` | Blocks remote writes, local credential changes, and self-update |
 | `--no-input` | `GSC_NO_INPUT=1` | Never prompts or opens a browser; commands fail instead |
-| `--dry-run` | | Prints write requests and sends nothing |
+| `--dry-run` | | Prints write requests and sends nothing; `--read-only` still refuses the command |
 | `--yes` | | Confirms destructive commands without a prompt |
 | `--quiet` | `GSC_QUIET=1` | Drops informational notes from stderr |
 | `--verbose` | `GSC_VERBOSE=1` | Logs method, URL, and status to stderr (never tokens or bodies) |

@@ -229,6 +229,7 @@ func TestUpdateNoticeSuppressed(t *testing.T) {
 		{"version", true, nil, "0.1.3", []string{"version"}},
 		{"completion", true, nil, "0.1.3", []string{"completion", "bash"}},
 		{"help", true, nil, "0.1.3", []string{"help"}},
+		{"command group help", true, nil, "0.1.3", []string{"sites"}},
 		{"__complete", true, nil, "0.1.3", []string{"__complete", "auth", ""}},
 	}
 	for _, tc := range cases {

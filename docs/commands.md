@@ -70,6 +70,11 @@ List saved profiles (no secrets)
 gsc auth list
 ```
 
+```bash
+  gsc auth list
+  gsc auth list -o json
+```
+
 ## gsc auth login
 
 Sign in with Google (opens your browser) or save another credential type
@@ -116,6 +121,11 @@ it asks for confirmation unless --yes is given.
 gsc auth logout [flags]
 ```
 
+```bash
+  gsc auth logout
+  gsc auth logout --profile work --revoke --yes
+```
+
 ```text
       --revoke   Also revoke access at Google (signs out every machine using the same OAuth client)
 ```
@@ -130,6 +140,11 @@ Reads local configuration only. --verify additionally lists properties with the 
 gsc auth status [flags]
 ```
 
+```bash
+  gsc auth status
+  gsc auth status --verify -o json
+```
+
 ```text
       --verify   Check the credential by listing properties (one API call)
 ```
@@ -142,6 +157,11 @@ Print a fresh access token for debugging (keep it secret)
 gsc auth token
 ```
 
+```bash
+  curl -H "Authorization: Bearer $(gsc auth token)" https://searchconsole.googleapis.com/webmasters/v3/sites
+  gsc auth token --profile ci
+```
+
 ## gsc auth use
 
 Set the default profile
@@ -150,12 +170,22 @@ Set the default profile
 gsc auth use NAME
 ```
 
+```bash
+  gsc auth use work
+```
+
 ## gsc completion
 
 Generate shell completion script
 
 ```text
 gsc completion [bash|zsh|fish|powershell]
+```
+
+```bash
+  source <(gsc completion zsh)
+  gsc completion bash > /usr/local/etc/bash_completion.d/gsc
+  gsc completion fish > ~/.config/fish/completions/gsc.fish
 ```
 
 ## gsc config
@@ -174,6 +204,11 @@ List saved profiles (no secrets)
 gsc config list-profiles
 ```
 
+```bash
+  gsc config list-profiles
+  gsc config list-profiles -o json
+```
+
 ## gsc config show
 
 Show which credential is in use, without revealing it
@@ -182,6 +217,11 @@ Reads local configuration only. --verify additionally lists properties with the 
 
 ```text
 gsc config show [flags]
+```
+
+```bash
+  gsc config show
+  gsc config show --verify -o json
 ```
 
 ```text
@@ -196,12 +236,21 @@ Set the default profile
 gsc config use-profile NAME
 ```
 
+```bash
+  gsc config use-profile work
+```
+
 ## gsc doctor
 
 Check configuration, credentials, and PATH (local unless --online)
 
 ```text
 gsc doctor [flags]
+```
+
+```bash
+  gsc doctor
+  gsc doctor --online -o json
 ```
 
 ```text
@@ -254,6 +303,11 @@ data. Final data usually lags two to three days.
 gsc freshness [flags]
 ```
 
+```bash
+  gsc freshness
+  gsc freshness --type discover -o json
+```
+
 ```text
       --type string   Search type (default web)
 ```
@@ -278,6 +332,11 @@ Queries where two or more pages split the impressions
 gsc insights cannibalization [flags]
 ```
 
+```bash
+  gsc insights cannibalization --last 3m
+  gsc insights cannibalization --min-share 0.2 --filter 'query ~ pricing'
+```
+
 ```text
       --aggregation string      auto, byPage, byProperty, or byNewsShowcasePanel
       --data-state string       final (default), all (includes preliminary data), or hourly_all
@@ -297,6 +356,11 @@ Queries or pages that lost the most clicks versus the comparison period
 
 ```text
 gsc insights decliners [flags]
+```
+
+```bash
+  gsc insights decliners --compare yoy
+  gsc insights decliners --by page --min-clicks 20 -o json
 ```
 
 ```text
@@ -321,6 +385,11 @@ Queries or pages returned in the comparison period but not now (no longer expose
 gsc insights lost-queries [flags]
 ```
 
+```bash
+  gsc insights lost-queries --last 7d
+  gsc insights lost-queries --by page -o json
+```
+
 ```text
       --aggregation string   auto, byPage, byProperty, or byNewsShowcasePanel
       --by string            Compare queries or pages (default "query")
@@ -340,6 +409,11 @@ Queries whose CTR is well below this site's median for the same position
 
 ```text
 gsc insights low-ctr [flags]
+```
+
+```bash
+  gsc insights low-ctr
+  gsc insights low-ctr --factor 0.4 --min-impressions 200 -o json
 ```
 
 ```text
@@ -363,6 +437,11 @@ Queries or pages returned now but not in the comparison period (newly exposed)
 gsc insights new-queries [flags]
 ```
 
+```bash
+  gsc insights new-queries --last 7d
+  gsc insights new-queries --by page --compare yoy
+```
+
 ```text
       --aggregation string   auto, byPage, byProperty, or byNewsShowcasePanel
       --by string            Compare queries or pages (default "query")
@@ -382,6 +461,11 @@ Queries ranking just off the top (average position 4 to 20) with real impression
 
 ```text
 gsc insights striking-distance [flags]
+```
+
+```bash
+  gsc insights striking-distance
+  gsc insights striking-distance --min-impressions 500 --max-position 15 -o json
 ```
 
 ```text
@@ -437,12 +521,9 @@ gsc login [flags]
 ```
 
 ```bash
-  gsc auth login
-  gsc auth login --profile work --scope readonly
-  gsc auth login --no-browser
-  gsc auth login --client-secret-file client_secret.json
-  gsc auth login --profile ci --service-account key.json
-  gsc auth login --profile gcloud --adc --impersonate reporting@my-project.iam.gserviceaccount.com
+  gsc login
+  gsc login --no-browser
+  gsc login --profile work --scope readonly
 ```
 
 ```text
@@ -535,6 +616,10 @@ Delete a sitemap from the report (Google may still crawl it)
 gsc sitemaps delete SITEMAP_URL
 ```
 
+```bash
+  gsc sitemaps delete https://www.example.com/old-sitemap.xml --yes
+```
+
 ## gsc sitemaps get
 
 Show one sitemap's status, errors, and warnings
@@ -543,12 +628,21 @@ Show one sitemap's status, errors, and warnings
 gsc sitemaps get SITEMAP_URL
 ```
 
+```bash
+  gsc sitemaps get https://www.example.com/sitemap.xml
+```
+
 ## gsc sitemaps list
 
 List submitted sitemaps
 
 ```text
 gsc sitemaps list [flags]
+```
+
+```bash
+  gsc sitemaps list
+  gsc sitemaps list --index https://www.example.com/sitemap_index.xml -o json
 ```
 
 ```text
@@ -561,6 +655,11 @@ Submit a sitemap URL for the property
 
 ```text
 gsc sitemaps submit SITEMAP_URL
+```
+
+```bash
+  gsc sitemaps submit https://www.example.com/sitemap.xml
+  gsc sitemaps submit https://www.example.com/sitemap.xml --dry-run
 ```
 
 ## gsc sites
@@ -576,10 +675,16 @@ gsc sites
 Add a property to your Search Console list (does not verify ownership)
 
 SITE must be exact: sc-domain:example.com or a URL-prefix such as https://www.example.com/.
-Adding a property does not verify it; complete verification in Search Console.
+Adding a property does not verify it. A URL-prefix inside a domain property you already own is verified
+at once; otherwise complete verification in Search Console. The output reports the resulting permission.
 
 ```text
 gsc sites add SITE
+```
+
+```bash
+  gsc sites add https://blog.example.com/
+  gsc sites add sc-domain:example.org --dry-run
 ```
 
 ## gsc sites get
@@ -590,6 +695,11 @@ Show one property (default: the profile's site)
 gsc sites get [SITE]
 ```
 
+```bash
+  gsc sites get
+  gsc sites get https://www.example.com/ -o json
+```
+
 ## gsc sites list
 
 List properties you can access and your permission level
@@ -598,12 +708,21 @@ List properties you can access and your permission level
 gsc sites list
 ```
 
+```bash
+  gsc sites list
+  gsc sites list -o json
+```
+
 ## gsc sites remove
 
 Remove a property from your Search Console list
 
 ```text
 gsc sites remove SITE
+```
+
+```bash
+  gsc sites remove https://old.example.com/ --yes
 ```
 
 ## gsc sites use
@@ -616,6 +735,11 @@ Exact property identifiers are saved without a network call; a bare host is reso
 gsc sites use SITE
 ```
 
+```bash
+  gsc sites use sc-domain:example.com
+  gsc sites use www.example.com
+```
+
 ## gsc status
 
 Alias of auth status
@@ -624,6 +748,11 @@ Reads local configuration only. --verify additionally lists properties with the 
 
 ```text
 gsc status [flags]
+```
+
+```bash
+  gsc status
+  gsc status --verify
 ```
 
 ```text
@@ -644,6 +773,10 @@ Search appearance types (filter on one with --filter 'searchAppearance = VALUE' 
 
 ```text
 gsc top appearance [flags]
+```
+
+```bash
+  gsc top appearance --last 3m -o json
 ```
 
 ```text
@@ -667,6 +800,10 @@ Clicks and impressions by country (ISO 3166-1 alpha-3)
 gsc top countries [flags]
 ```
 
+```bash
+  gsc top countries --last 3m
+```
+
 ```text
       --aggregation string   auto, byPage, byProperty, or byNewsShowcasePanel
       --all                  Fetch every row Google exposes for the query
@@ -686,6 +823,10 @@ Clicks and impressions by device
 
 ```text
 gsc top devices [flags]
+```
+
+```bash
+  gsc top devices --compare yoy
 ```
 
 ```text
@@ -709,6 +850,11 @@ Top pages by clicks
 gsc top pages [flags]
 ```
 
+```bash
+  gsc top pages --filter 'page ~ /blog/'
+  gsc top pages --all -o csv > pages.csv
+```
+
 ```text
       --aggregation string   auto, byPage, byProperty, or byNewsShowcasePanel
       --all                  Fetch every row Google exposes for the query
@@ -728,6 +874,11 @@ Top search queries by clicks
 
 ```text
 gsc top queries [flags]
+```
+
+```bash
+  gsc top queries --last 7d
+  gsc top queries --compare previous --limit 50 -o json
 ```
 
 ```text
@@ -815,4 +966,9 @@ cached; version never uses the network.
 
 ```text
 gsc version
+```
+
+```bash
+  gsc version
+  gsc version -o json
 ```

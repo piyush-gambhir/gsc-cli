@@ -162,7 +162,7 @@ is an envelope with the site, dates, type, data state, completeness, and rows. E
 structured on stderr; the exit status is 0 on success and 1 on failure.
 
 `--read-only` (or `GSC_READ_ONLY=1`) blocks every remote write, local credential change, and self-update.
-`--dry-run` prints a write request without sending it. Destructive commands and `update` confirm, or need
+`--dry-run` prints a write request without sending it (`--read-only` refuses it even then). Destructive commands and `update` confirm, or need
 `--yes` (`-y`) with `--no-input`. No command retries automatically; `export --retry N` opts in.
 
 | Environment variable | Meaning |

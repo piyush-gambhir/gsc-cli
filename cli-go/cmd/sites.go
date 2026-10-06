@@ -109,7 +109,8 @@ func (a *app) dryRunPlan(method, path string, body any) error {
 func (a *app) sitesAdd() *cobra.Command {
 	return &cobra.Command{Use: "add SITE", Short: "Add a property to your Search Console list (does not verify ownership)", Args: cobra.ExactArgs(1),
 		Long: "SITE must be exact: sc-domain:example.com or a URL-prefix such as https://www.example.com/.\n" +
-			"Adding a property does not verify it; complete verification in Search Console.",
+			"Adding a property does not verify it. A URL-prefix inside a domain property you already own is verified\n" +
+			"at once; otherwise complete verification in Search Console. The output reports the resulting permission.",
 		Annotations: map[string]string{annMutates: "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !site.Exact(args[0]) {
@@ -128,7 +129,13 @@ func (a *app) sitesAdd() *cobra.Command {
 			if err := c.AddSite(cmd.Context(), args[0]); err != nil {
 				return err
 			}
-			return a.print(map[string]any{"site": args[0], "added": true, "verified": false})
+			// Read back what Google granted: a URL-prefix under an owned domain property is verified at once.
+			out := map[string]any{"site": args[0], "added": true}
+			if e, err := c.GetSite(cmd.Context(), args[0]); err == nil {
+				out["permissionLevel"] = e.PermissionLevel
+				out["verified"] = e.PermissionLevel != "siteUnverifiedUser"
+			}
+			return a.print(out)
 		}}
 }
 

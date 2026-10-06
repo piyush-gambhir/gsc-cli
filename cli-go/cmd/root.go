@@ -129,6 +129,7 @@ func newRoot(a *app) *cobra.Command {
 	login := a.login()
 	login.Use = "login"
 	login.Short = "Alias of auth login"
+	login.Example = "  gsc login\n  gsc login --no-browser\n  gsc login --profile work --scope readonly"
 	status := a.status()
 	status.Use = "status"
 	status.Short = "Alias of auth status"
@@ -157,7 +158,54 @@ func newRoot(a *app) *cobra.Command {
 		return fmt.Errorf("unsupported shell %q", args[0])
 	}})
 	root.CompletionOptions.DisableDefaultCmd = true
+	rejectUnknownSubcommands(root)
+	addExamples(root)
 	return root
+}
+
+// rejectUnknownSubcommands makes command groups (sites, insights, ...) fail on
+// an unknown subcommand. Cobra checks only at the root, so `gsc sites lsit`
+// would otherwise print help and exit 0.
+func rejectUnknownSubcommands(c *cobra.Command) {
+	for _, sub := range c.Commands() {
+		rejectUnknownSubcommands(sub)
+	}
+	if !c.HasParent() || !c.HasSubCommands() || c.Runnable() {
+		return
+	}
+	c.Args = cobra.ArbitraryArgs
+	c.SuggestionsMinimumDistance = 2 // Cobra's root default; SuggestionsFor alone uses 0
+	c.RunE = func(cmd *cobra.Command, args []string) error {
+		if len(args) == 0 {
+			return cmd.Help()
+		}
+		msg := fmt.Sprintf("unknown command %q for %q", args[0], cmd.CommandPath())
+		if s := cmd.SuggestionsFor(args[0]); len(s) > 0 {
+			msg += "\n\nDid you mean this?\n\t" + strings.Join(s, "\n\t")
+		}
+		return errors.New(msg)
+	}
+}
+
+// outputFlag finds the last -o/--output value in raw arguments, so errors raised
+// before Cobra parses flags (unknown commands or flags) still honor -o json.
+func outputFlag(args []string) string {
+	f := ""
+	for i := 0; i < len(args); i++ {
+		switch s := args[i]; {
+		case s == "--":
+			return f
+		case s == "-o" || s == "--output":
+			if i+1 < len(args) {
+				f, i = args[i+1], i+1
+			}
+		case strings.HasPrefix(s, "--output="):
+			f = strings.TrimPrefix(s, "--output=")
+		case strings.HasPrefix(s, "-o"):
+			f = strings.TrimPrefix(strings.TrimPrefix(s, "-o"), "=")
+		}
+	}
+	return f
 }
 
 // Run executes the CLI and returns the process exit code.
@@ -181,7 +229,7 @@ func (a *app) run(ctx context.Context, args []string) int {
 	if err == nil {
 		return 0
 	}
-	message := err.Error()
+	message := strings.TrimSpace(err.Error())
 	for _, secret := range []string{a.accessToken, os.Getenv("GSC_ACCESS_TOKEN"), os.Getenv("GSC_CLIENT_SECRET"), auth.BuiltinClientSecret} {
 		if secret != "" {
 			message = strings.ReplaceAll(message, secret, "[REDACTED]")
@@ -198,6 +246,13 @@ func (a *app) run(ctx context.Context, args []string) int {
 			payload["retry_after"] = apiErr.RetryAfter
 		}
 	}
+	// Only when -o was never parsed: a parsed value is authoritative, and the raw
+	// scan cannot tell -o from another flag's value such as --data -oyaml.
+	if o := root.PersistentFlags().Lookup("output"); o != nil && !o.Changed {
+		if f := outputFlag(args); f == "json" || f == "yaml" {
+			a.format = f
+		}
+	}
 	if a.format == "json" || a.format == "yaml" {
 		_ = output.Print(a.errOut, a.format, payload)
 	} else {
@@ -209,7 +264,15 @@ func (a *app) run(ctx context.Context, args []string) int {
 	return 1
 }
 
-func (a *app) print(data any) error { return output.Print(a.out, a.format, data) }
+func (a *app) print(data any) error {
+	// Tables and CSV drop the envelope, so say which rows are not final.
+	if r, ok := data.(*analytics.Result); ok && a.format != "json" && a.format != "yaml" {
+		if at := r.FirstIncompleteDate + r.FirstIncompleteHour; at != "" {
+			a.warn("data from %s on is preliminary and may change; JSON and YAML output label it", at)
+		}
+	}
+	return output.Print(a.out, a.format, data)
+}
 
 func (a *app) info(format string, args ...any) {
 	if !a.quiet {

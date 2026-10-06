@@ -25,7 +25,7 @@ Use the installed `gsc` binary; check subcommand `--help` for flags. The full re
 - Search Analytics has unpublished load quotas. Prefer narrower date ranges and avoid grouping by page and
   query together over long ranges. Do not retry quota errors in a loop.
 - Writes (`sites add/remove`, `sitemaps submit/delete`) need the user's explicit request; use `--dry-run`
-  to show the request first. Some UI features (branded filter, AI Overviews reports, Insights) have no API.
+  to show the request first. `--read-only` refuses writes even as a dry run, so preview without it. Some UI features (branded filter, AI Overviews reports, Insights) have no API.
 
 ## Updating gsc
 

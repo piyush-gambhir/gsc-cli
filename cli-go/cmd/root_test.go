@@ -160,6 +160,14 @@ func (f *fakeGoogle) RoundTrip(r *http.Request) (*http.Response, error) {
 			return jsonResp(status, resp), nil
 		case strings.Contains(p, "/sitemaps") && r.Method == "GET":
 			return jsonResp(200, `{"sitemap":[{"path":"https://example.com/sitemap.xml","type":"sitemap","isPending":false,"errors":"0","warnings":"1"}]}`), nil
+		case r.Method == "GET" && strings.HasPrefix(p, "/webmasters/v3/sites/") && !strings.Contains(p, "/sitemaps"):
+			site, _ := url.PathUnescape(strings.TrimPrefix(p, "/webmasters/v3/sites/"))
+			for _, e := range f.sites {
+				if e.SiteURL == site {
+					return jsonResp(200, e), nil
+				}
+			}
+			return jsonResp(404, `{"error":{"code":404,"message":"not found"}}`), nil
 		case r.Method == "PUT" || r.Method == "DELETE":
 			return jsonResp(200, ""), nil
 		}

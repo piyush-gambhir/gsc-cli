@@ -25,6 +25,9 @@ func (a *app) notifierEnabled(cmd *cobra.Command) bool {
 	case name == "update", name == "version", name == "completion", name == "help", strings.HasPrefix(name, "__complete"):
 		return false
 	}
+	if cmd.HasSubCommands() { // a bare group only prints help or a usage error
+		return false
+	}
 	if a.quiet || !update.IsRelease(build.Version) {
 		return false
 	}
