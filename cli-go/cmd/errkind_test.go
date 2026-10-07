@@ -105,3 +105,25 @@ func TestErrorKindFromCommandBodies(t *testing.T) {
 		}
 	}
 }
+
+// Bad input to query-family and other commands is a usage error (the cases
+// from the v0.1.5 live test).
+func TestInputErrorsAreUsage(t *testing.T) {
+	isolate(t)
+	t.Setenv("GSC_ACCESS_TOKEN", "env-token")
+	f := newFake(t)
+	for _, args := range [][]string{
+		{"query", "--type", "bogus"},
+		{"query", "--filter", "query > abc"},
+		{"query", "-s", "sc-domain:example.com", "--start", "2026-09-21", "--end", "2026-10-02", "--aggregation", "byNewsShowcasePanel", "--type", "googleNews"},
+		{"query", "-s", "sc-domain:example.com", "--start", "2026-09-21", "--end", "2026-10-02", "--compare", "fortnight"},
+		{"inspect"},
+		{"export"},
+	} {
+		r := cli(t, f, now, "", append(args, "-o", "json", "--no-input")...)
+		var e map[string]any
+		if r.code != 1 || r.out != "" || json.Unmarshal([]byte(r.errOut), &e) != nil || e["kind"] != "usage" {
+			t.Errorf("%v: code=%d out=%q err=%q", args, r.code, r.out, r.errOut)
+		}
+	}
+}

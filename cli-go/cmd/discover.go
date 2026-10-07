@@ -61,8 +61,10 @@ func flagList(fs *pflag.FlagSet) []flagInfo {
 func (a *app) commandsCmd() *cobra.Command {
 	return &cobra.Command{Use: "commands", Short: "Describe every command, its flags, and whether it reads or writes (for agents)", Args: cobra.NoArgs,
 		Long: "Offline: lists every runnable command with its usage, flags and defaults, effect (read, remote_write,\n" +
-			"or local_write), whether it may prompt, the Search Console API methods it calls, and examples.\n" +
-			"Global flags are listed once. Use -o json for the full description.",
+			"or local_write), whether it may prompt, the Search Console API methods it exists to call, and examples.\n" +
+			"Global flags are listed once. Use -o json for the full description. Some calls are incidental and not\n" +
+			"listed: a bare host given to -s, --verify, doctor --online, and login each list properties once\n" +
+			"(webmasters.sites.list).",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			methods := map[string][]string{}
 			for _, e := range coverage.Entries {

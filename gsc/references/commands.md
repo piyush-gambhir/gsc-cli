@@ -223,8 +223,10 @@ gsc auth use NAME [flags]
 Describe every command, its flags, and whether it reads or writes (for agents)
 
 Offline: lists every runnable command with its usage, flags and defaults, effect (read, remote_write,
-or local_write), whether it may prompt, the Search Console API methods it calls, and examples.
-Global flags are listed once. Use -o json for the full description.
+or local_write), whether it may prompt, the Search Console API methods it exists to call, and examples.
+Global flags are listed once. Use -o json for the full description. Some calls are incidental and not
+listed: a bare host given to -s, --verify, doctor --online, and login each list properties once
+(webmasters.sites.list).
 
 ```text
 gsc commands [flags]

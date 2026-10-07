@@ -72,8 +72,9 @@ latest versions.
   [`gsc/`](https://github.com/piyush-gambhir/gsc-cli/tree/main/gsc) directory into your agent's skills
   directory. It bundles the command and auth references, so it works on its own.
 - `gsc commands -o json` describes every command offline: usage, flags and defaults, whether it reads or
-  writes (`read`, `remote_write`, `local_write`), whether it may prompt, the API methods it calls, and
-  examples. `gsc api methods -o json` is the same map from the API side.
+  writes (`read`, `remote_write`, `local_write`), whether it may prompt, the API methods it exists to call,
+  and examples. A bare host given to `-s`, `--verify`, `doctor --online`, and login also list properties
+  once (`webmasters.sites.list`). `gsc api methods -o json` is the same map from the API side.
 - Failures exit `1` with a structured error whose `kind` (`auth`, `permission`, `not_found`,
   `rate_limit`, `usage`, `read_only`, `confirmation_required`, ...) says what to do next; see
   [Output formats](/docs/output-formats#errors).

@@ -224,7 +224,7 @@ func (a *app) finalize(ctx context.Context, cl *client.Client, site string, sp *
 		case sp.end != "":
 			d, err := analytics.ParseDate(sp.end)
 			if err != nil {
-				return err
+				return withKind(kindUsage, err)
 			}
 			end = d
 		case estimateOnly:
@@ -249,7 +249,7 @@ func (a *app) finalize(ctx context.Context, cl *client.Client, site string, sp *
 		}
 		r, err := analytics.LastRange(sp.last, end)
 		if err != nil {
-			return err
+			return withKind(kindUsage, err)
 		}
 		oldest := analytics.RetentionStart(a.today())
 		if slices.Contains(req.Dimensions, "hour") {
@@ -261,9 +261,10 @@ func (a *app) finalize(ctx context.Context, cl *client.Client, site string, sp *
 		}
 		req.StartDate, req.EndDate = r.Start.String(), r.End.String()
 	}
+	// Normalize validates the request offline: its errors are bad input.
 	warnings, err := analytics.Normalize(req, a.today())
 	if err != nil {
-		return err
+		return withKind(kindUsage, err)
 	}
 	for _, w := range warnings {
 		a.warn("%s", w)
@@ -276,7 +277,7 @@ func (a *app) runQuery(cmd *cobra.Command, q *queryFlags) (any, *analytics.Resul
 	ctx := cmd.Context()
 	sp, err := a.buildSpec(cmd, q)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, withKind(kindUsage, err)
 	}
 	if q.printRequest {
 		if err := a.finalize(ctx, nil, "", sp, true); err != nil {
@@ -319,7 +320,7 @@ func (a *app) runQuery(cmd *cobra.Command, q *queryFlags) (any, *analytics.Resul
 	end, _ := analytics.ParseDate(sp.req.EndDate)
 	prevRange, err := analytics.ComparePeriod(analytics.Range{Start: start, End: end}, q.compare)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, withKind(kindUsage, err)
 	}
 	if clipped, changed := analytics.Clip(prevRange, analytics.RetentionStart(a.today())); changed {
 		a.warn("comparison period starts before available data; clipped to %s..%s, so the periods differ in length", clipped.Start, clipped.End)

@@ -287,10 +287,18 @@ func (a *app) run(ctx context.Context, args []string) int {
 }
 
 func (a *app) print(data any) error {
-	// Tables and CSV drop the envelope, so say which rows are not final.
-	if r, ok := data.(*analytics.Result); ok && a.format != "json" && a.format != "yaml" {
-		if at := r.FirstIncompleteDate + r.FirstIncompleteHour; at != "" {
+	// Tables and CSV drop the envelope, so say which data is not final.
+	r, ok := data.(*analytics.Result)
+	if c, isCmp := data.(*analytics.Comparison); isCmp {
+		r, ok = c.Current, true
+	}
+	if ok && r != nil && a.format != "json" && a.format != "yaml" {
+		switch at := r.FirstIncompleteDate + r.FirstIncompleteHour; {
+		case at != "":
 			a.warn("data from %s on is preliminary and may change; JSON and YAML output label it", at)
+		case r.Request.DataState == "all" || r.Request.DataState == "hourly_all":
+			// Ungrouped totals carry no first-incomplete marker, but may include preliminary days.
+			a.warn("--data-state %s may include preliminary data that can change", r.Request.DataState)
 		}
 	}
 	return output.Print(a.out, a.format, data)

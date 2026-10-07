@@ -9,7 +9,7 @@ Use the installed `gsc` binary. `gsc commands -o json` describes every command o
 whether it reads or writes, and the API methods it calls. The full reference is
 [references/commands.md](references/commands.md); login methods are in [references/auth.md](references/auth.md).
 
-- Prefer `-o json --no-input`. Data is on stdout, diagnostics on stderr. Pass `--read-only` unless the user
+- Prefer `-o json --no-input` (CSV is flat and drops nested fields). Data is on stdout, diagnostics on stderr. Pass `--read-only` unless the user
   asked for a change.
 - Every failure exits 1 with a JSON error on stderr. Branch on its `kind`: `auth` (log in again), `permission`,
   `not_found`, `rate_limit` (wait for `retry_after`; do not loop), `usage`, `read_only`,

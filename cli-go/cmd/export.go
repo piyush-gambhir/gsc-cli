@@ -25,14 +25,14 @@ func (a *app) export() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			if out == "" {
-				return errors.New("--out DIR is required")
+				return withKind(kindUsage, errors.New("--out DIR is required"))
 			}
 			if retry < 0 {
-				return errors.New("--retry must not be negative")
+				return withKind(kindUsage, errors.New("--retry must not be negative"))
 			}
 			sp, err := a.buildSpec(cmd, q)
 			if err != nil {
-				return err
+				return withKind(kindUsage, err)
 			}
 			cl, _, err := a.connect(ctx)
 			if err != nil {

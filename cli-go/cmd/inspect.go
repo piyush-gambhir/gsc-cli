@@ -76,7 +76,7 @@ func (a *app) inspect() *cobra.Command {
 			}
 			urls = dedupe(urls)
 			if len(urls) == 0 {
-				return errors.New("give URLs as arguments or with --file")
+				return withKind(kindUsage, errors.New("give URLs as arguments or with --file"))
 			}
 			for _, u := range urls {
 				if !strings.HasPrefix(u, "http://") && !strings.HasPrefix(u, "https://") {

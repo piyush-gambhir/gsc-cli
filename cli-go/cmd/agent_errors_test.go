@@ -72,3 +72,14 @@ func TestHelpBeforeValueFlag(t *testing.T) {
 		t.Fatalf("code=%d out=%q err=%q", r.code, r.out, r.errOut)
 	}
 }
+
+// Ungrouped totals carry no first-incomplete marker; --data-state all still warns in tables.
+func TestPreliminaryWarningForTotals(t *testing.T) {
+	isolate(t)
+	t.Setenv("GSC_ACCESS_TOKEN", "env-token")
+	f := newFake(t)
+	r := cli(t, f, now, "", "performance", "-s", "sc-domain:example.com", "--start", "2026-09-30", "--end", "2026-10-02", "--data-state", "all")
+	if r.code != 0 || !strings.Contains(r.errOut, "may include preliminary data") {
+		t.Fatalf("code=%d err=%q", r.code, r.errOut)
+	}
+}

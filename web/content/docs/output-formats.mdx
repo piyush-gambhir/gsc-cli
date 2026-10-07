@@ -7,7 +7,8 @@ description: Table, JSON, YAML, and CSV output in gsc, the stdout and stderr con
 
 `-o table` is the default. `-o json` and `-o yaml` work on every command that returns data, and `-o csv`
 works on row-shaped results such as Search Analytics, `top`, `trend`, insights, `inspect`, and
-`sites list`; other commands reject it with a message.
+`sites list`; other commands reject it with a message. CSV is one flat row per result, so nested fields
+(a sitemap's `contents`, URL Inspection details such as referring URLs) appear only in JSON and YAML.
 
 ```bash
 gsc sites list                            # table
@@ -124,6 +125,10 @@ carries a structured error:
 | `confirmation_required` | A destructive command needs `--yes` without a terminal |
 | `timeout`, `network`, `cancelled` | The request did not complete |
 | `error` | Anything else |
+
+Three commands write stdout and still exit `1`, so the work done so far is not lost: `gsc doctor` prints its
+check report when a check fails, `gsc inspect` prints the URLs it inspected before a quota stop, and
+`gsc export` prints its summary when it stops early (rerun it to resume).
 
 `reason` is Google's error reason when it sends one, and `retry_after` is added when Google sends a
 `Retry-After` header. The message ends with a hint for the common cases:
