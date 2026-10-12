@@ -18,7 +18,8 @@ jobs:
   release:
     # Releases only ever come from protected main, including manual reruns.
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       contents: write # create the tag and the release
       id-token: write # sign build-provenance attestations
@@ -64,7 +65,7 @@ jobs:
       - name: Vulnerability scan
         if: steps.version.outputs.publish == 'true'
         working-directory: cli-go
-        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
       - name: Tag the release commit
         if: steps.version.outputs.publish == 'true'
         env:
@@ -78,13 +79,13 @@ jobs:
       - uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         if: steps.version.outputs.publish == 'true'
         with:
-          syft-version: v1.54.0
+          syft-version: v1.54.1
       - name: Build and upload a draft release
         if: steps.version.outputs.publish == 'true'
         uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           distribution: goreleaser
-          version: v2.18.2
+          version: v2.18.3
           args: release --clean --config cli-go/.goreleaser.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
