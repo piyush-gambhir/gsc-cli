@@ -53,10 +53,10 @@ Checked on 2026-10-03 (full source list in [RESEARCH.md](../RESEARCH.md)):
 
 ## Dependencies
 
-Go 1.27 minimum, toolchain 1.27.2. Direct modules (checked 2026-10-03): `spf13/cobra` 1.10.2,
+Go 1.27 minimum, toolchain 1.27.2. Direct modules (checked 2026-10-12): `spf13/cobra` 1.10.2,
 `spf13/pflag` 1.0.10, `gofrs/flock` 0.13.1, `google/renameio/v2` 2.0.2, `go.yaml.in/yaml/v3` 3.0.5,
 `golang.org/x/oauth2` 0.37.0 (including `oauth2/google` for service accounts and ADC),
-`zalando/go-keyring` 0.2.8, `golang.org/x/term` 0.46.0, `golang.org/x/sys` 0.48.0. The generated
+`zalando/go-keyring` 0.2.8, `golang.org/x/term` 0.47.0, `golang.org/x/sys` 0.49.0. The generated
 `google.golang.org/api/searchconsole/v1` client is intentionally not used.
 
 ## Refreshing the snapshot
