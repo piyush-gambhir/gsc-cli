@@ -28,7 +28,7 @@ SHA-256 checksum. Windows users download the ZIP from the [releases page](https:
 Ghostscript and Gambit Scheme also install a program named `gsc`. The installer warns if another `gsc` comes
 first on your `PATH`, and `gsc doctor` checks it too.
 
-From source (Go 1.26+, toolchain 1.27.1):
+From source (Go 1.27+, toolchain 1.27.2):
 
 ```bash
 git clone https://github.com/piyush-gambhir/gsc-cli.git
