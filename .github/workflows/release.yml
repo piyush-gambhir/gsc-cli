@@ -18,7 +18,8 @@ jobs:
   release:
     # Releases only ever come from protected main, including manual reruns.
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       contents: write # create the tag and the release
       id-token: write # sign build-provenance attestations
