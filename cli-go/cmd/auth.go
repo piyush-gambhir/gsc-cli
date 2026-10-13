@@ -593,20 +593,20 @@ func (a *app) logout() *cobra.Command {
 func (a *app) tokenCmd() *cobra.Command {
 	return &cobra.Command{Use: "token", Short: "Print a fresh access token for debugging (keep it secret)", Args: cobra.NoArgs,
 		Annotations: map[string]string{annSecret: "true"}, RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := a.resolveCreds(cmd.Context())
-		if err != nil {
-			return err
-		}
-		tok, err := c.ts.AccessToken(cmd.Context())
-		if err != nil {
-			return err
-		}
-		if a.format == "table" {
-			_, err := fmt.Fprintln(a.out, tok)
-			return err
-		}
-		return a.print(map[string]any{"access_token": tok, "source": c.source})
-	}}
+			c, err := a.resolveCreds(cmd.Context())
+			if err != nil {
+				return err
+			}
+			tok, err := c.ts.AccessToken(cmd.Context())
+			if err != nil {
+				return err
+			}
+			if a.format == "table" {
+				_, err := fmt.Fprintln(a.out, tok)
+				return err
+			}
+			return a.print(map[string]any{"access_token": tok, "source": c.source})
+		}}
 }
 
 func (a *app) configCmd() *cobra.Command {

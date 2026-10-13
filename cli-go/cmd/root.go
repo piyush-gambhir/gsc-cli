@@ -59,11 +59,11 @@ type app struct {
 
 // Annotation keys used by --read-only and the command-safety manifest.
 const (
-	annMutates     = "mutates"      // "true": remote write; "conditional": decided at run time
-	annWritesLocal = "writes-local" // changes local credentials, config, or the binary
-	annInteractive = "interactive"  // may prompt or open a browser
+	annMutates     = "mutates"       // "true": remote write; "conditional": decided at run time
+	annWritesLocal = "writes-local"  // changes local credentials, config, or the binary
+	annInteractive = "interactive"   // may prompt or open a browser
 	annSecret      = "secret-output" // prints a credential; refused under --read-only
-	annGroup       = "group"        // only groups subcommands; runs just to print help or reject a typo
+	annGroup       = "group"         // only groups subcommands; runs just to print help or reject a typo
 )
 
 func envBool(name string) bool { s := os.Getenv(name); return s == "1" || strings.EqualFold(s, "true") }

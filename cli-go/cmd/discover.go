@@ -26,9 +26,9 @@ type commandInfo struct {
 	Summary     string     `json:"summary"`
 	Usage       string     `json:"usage"`
 	Aliases     []string   `json:"aliases"`
-	Effect      string     `json:"effect"`      // read, remote_write, or local_write
-	Conditional bool       `json:"conditional"` // the effect depends on arguments (gsc api, gsc update)
-	Interactive bool       `json:"interactive"` // may prompt or open a browser
+	Effect      string     `json:"effect"`        // read, remote_write, or local_write
+	Conditional bool       `json:"conditional"`   // the effect depends on arguments (gsc api, gsc update)
+	Interactive bool       `json:"interactive"`   // may prompt or open a browser
 	Secret      bool       `json:"secret_output"` // prints a credential; agents must not run it
 	APIMethods  []string   `json:"api_methods"`
 	Flags       []flagInfo `json:"flags"`
