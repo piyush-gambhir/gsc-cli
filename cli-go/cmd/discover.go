@@ -29,6 +29,7 @@ type commandInfo struct {
 	Effect      string     `json:"effect"`      // read, remote_write, or local_write
 	Conditional bool       `json:"conditional"` // the effect depends on arguments (gsc api, gsc update)
 	Interactive bool       `json:"interactive"` // may prompt or open a browser
+	Secret      bool       `json:"secret_output"` // prints a credential; agents must not run it
 	APIMethods  []string   `json:"api_methods"`
 	Flags       []flagInfo `json:"flags"`
 	Examples    []string   `json:"examples"`
@@ -93,7 +94,7 @@ func (a *app) commandsCmd() *cobra.Command {
 
 func describe(c *cobra.Command, methods []string) commandInfo {
 	info := commandInfo{Command: c.CommandPath(), Summary: c.Short, Usage: c.UseLine(), Aliases: c.Aliases, Effect: "read",
-		Interactive: c.Annotations[annInteractive] == "true", APIMethods: methods, Flags: flagList(c.LocalNonPersistentFlags()), Examples: []string{}}
+		Interactive: c.Annotations[annInteractive] == "true", Secret: c.Annotations[annSecret] == "true", APIMethods: methods, Flags: flagList(c.LocalNonPersistentFlags()), Examples: []string{}}
 	switch {
 	case c.Annotations[annMutates] != "":
 		info.Effect, info.Conditional = "remote_write", c.Annotations[annMutates] == "conditional"

@@ -62,6 +62,7 @@ const (
 	annMutates     = "mutates"      // "true": remote write; "conditional": decided at run time
 	annWritesLocal = "writes-local" // changes local credentials, config, or the binary
 	annInteractive = "interactive"  // may prompt or open a browser
+	annSecret      = "secret-output" // prints a credential; refused under --read-only
 	annGroup       = "group"        // only groups subcommands; runs just to print help or reject a typo
 )
 
@@ -90,7 +91,17 @@ func newRoot(a *app) *cobra.Command {
 			if a.timeout <= 0 {
 				return withKind(kindUsage, fmt.Errorf("--timeout must be positive"))
 			}
+			// Safety settings from the environment are sticky: an explicit false flag cannot undo them.
+			if envBool("GSC_READ_ONLY") {
+				a.readOnly = true
+			}
+			if envBool("GSC_NO_INPUT") {
+				a.noInput = true
+			}
 			if a.readOnly {
+				if cmd.Annotations[annSecret] == "true" {
+					return withKind(kindReadOnly, fmt.Errorf("%s prints a credential and is blocked by --read-only", cmd.CommandPath()))
+				}
 				if cmd.Annotations[annMutates] == "true" {
 					return withKind(kindReadOnly, fmt.Errorf("%s changes Search Console data and is blocked by --read-only", cmd.CommandPath()))
 				}

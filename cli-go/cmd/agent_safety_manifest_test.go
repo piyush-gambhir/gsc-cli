@@ -22,12 +22,12 @@ func TestAgentSafetyCommandManifest(t *testing.T) {
 		for _, c := range parent.Commands() {
 			if c.Runnable() {
 				ann := c.Annotations
-				mutates, local, interactive := ann[annMutates], ann[annWritesLocal], ann[annInteractive]
+				mutates, local, interactive, secret := ann[annMutates], ann[annWritesLocal], ann[annInteractive], ann[annSecret]
 				leaf := strings.Fields(c.Use)[0]
 				if writeVerbs[leaf] && mutates == "" && local == "" {
 					t.Errorf("%q looks like a write but has no mutates or writes-local annotation", c.CommandPath())
 				}
-				entries = append(entries, fmt.Sprintf("%s|mutates=%s|writes-local=%s|interactive=%s", c.CommandPath(), mutates, local, interactive))
+				entries = append(entries, fmt.Sprintf("%s|mutates=%s|writes-local=%s|interactive=%s|secret=%s", c.CommandPath(), mutates, local, interactive, secret))
 			}
 			walk(c)
 		}
@@ -35,7 +35,7 @@ func TestAgentSafetyCommandManifest(t *testing.T) {
 	walk(NewRoot(strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}))
 	sort.Strings(entries)
 	digest := fmt.Sprintf("%x", sha256.Sum256([]byte(strings.Join(entries, "\n"))))
-	const expectedDigest = "f9ebbc3bae86e3c18907d77113e8b7b3a5a371576eb19213cee066f29a8db3a1"
+	const expectedDigest = "6de890ecd2bc175212f3cd71e67c262cb7ac203459a5d2045ec05b7b373407cf"
 	if digest != expectedDigest {
 		t.Fatalf("agent-safety command manifest changed: got %s\n%s\nreview the annotations above, then update expectedDigest", digest, strings.Join(entries, "\n"))
 	}

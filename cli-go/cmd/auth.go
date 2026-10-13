@@ -591,7 +591,8 @@ func (a *app) logout() *cobra.Command {
 }
 
 func (a *app) tokenCmd() *cobra.Command {
-	return &cobra.Command{Use: "token", Short: "Print a fresh access token for debugging (keep it secret)", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
+	return &cobra.Command{Use: "token", Short: "Print a fresh access token for debugging (keep it secret)", Args: cobra.NoArgs,
+		Annotations: map[string]string{annSecret: "true"}, RunE: func(cmd *cobra.Command, args []string) error {
 		c, err := a.resolveCreds(cmd.Context())
 		if err != nil {
 			return err

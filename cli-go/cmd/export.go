@@ -16,6 +16,7 @@ func (a *app) export() *cobra.Command {
 	var interval time.Duration
 	var restart bool
 	c := &cobra.Command{Use: "export", Short: "Export Search Analytics day by day to CSV or NDJSON files (resumable)", Args: cobra.NoArgs,
+		Annotations: map[string]string{annWritesLocal: "true"},
 		Long: "Splits the range into days, as Google's extraction guide recommends, fetches every exposed row for each\n" +
 			"day, and writes one file per day through a temp file and rename. manifest.json records finished days;\n" +
 			"rerun the same command to resume. Days after the latest final date, and days Google marks incomplete,\n" +
