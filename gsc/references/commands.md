@@ -241,6 +241,23 @@ gsc commands [flags]
   -h, --help   help for commands
 ```
 
+## gsc commands resolve
+
+Show the command, effect and flags that arguments would run, without running them
+
+```text
+gsc commands resolve -- <arguments> [flags]
+```
+
+```bash
+  gsc commands resolve -- top queries -s sc-domain:example.com --last 7d
+  gsc commands resolve -- auth -o json token
+```
+
+```text
+  -h, --help   help for resolve
+```
+
 ## gsc completion
 
 Generate shell completion script

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/coverage"
@@ -59,7 +60,55 @@ func flagList(fs *pflag.FlagSet) []flagInfo {
 	return out
 }
 
+// resolution is what one set of arguments would run, decided by the real parser.
+type resolution struct {
+	Command     string            `json:"command"`
+	Effect      string            `json:"effect"`
+	Conditional bool              `json:"conditional"`
+	Interactive bool              `json:"interactive"`
+	Secret      bool              `json:"secret_output"`
+	Flags       map[string]string `json:"flags"`
+	Args        []string          `json:"args"`
+}
+
+// resolveCmd answers "what would these arguments run?" offline, so a runner can
+// authorise by effect instead of guessing from argument strings.
+func (a *app) resolveCmd() *cobra.Command {
+	return &cobra.Command{Use: "resolve -- <arguments>", Short: "Show the command, effect and flags that arguments would run, without running them",
+		DisableFlagParsing: true,
+		Example:            "  gsc commands resolve -- top queries -s sc-domain:example.com --last 7d\n  gsc commands resolve -- auth -o json token",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Everything after "--" is the command being resolved; the answer is always JSON.
+			for i, arg := range args {
+				if arg == "--" {
+					args = args[i+1:]
+					break
+				}
+			}
+			a.format = "json"
+			probe := NewRoot(strings.NewReader(""), io.Discard, io.Discard)
+			target, rest, err := probe.Find(args)
+			if err != nil || target == probe || !target.Runnable() || isGroup(target) {
+				return withKind(kindUsage, fmt.Errorf("arguments do not name a runnable gsc command (%v)", err))
+			}
+			if err := target.ParseFlags(rest); err != nil {
+				return withKind(kindUsage, err)
+			}
+			info := describe(target, nil)
+			res := resolution{Command: info.Command, Effect: info.Effect, Conditional: info.Conditional, Interactive: info.Interactive,
+				Secret: info.Secret, Flags: map[string]string{}, Args: target.Flags().Args()}
+			target.Flags().Visit(func(f *pflag.Flag) { res.Flags[f.Name] = f.Value.String() })
+			return a.print(res)
+		}}
+}
+
 func (a *app) commandsCmd() *cobra.Command {
+	c := a.commandsListCmd()
+	c.AddCommand(a.resolveCmd())
+	return c
+}
+
+func (a *app) commandsListCmd() *cobra.Command {
 	return &cobra.Command{Use: "commands", Short: "Describe every command, its flags, and whether it reads or writes (for agents)", Args: cobra.NoArgs,
 		Long: "Offline: lists every runnable command with its usage, flags and defaults, effect (read, remote_write,\n" +
 			"or local_write), whether it may prompt, the Search Console API methods it exists to call, and examples.\n" +

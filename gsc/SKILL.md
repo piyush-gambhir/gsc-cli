@@ -6,7 +6,8 @@ description: "Query Google Search Console with the gsc CLI: search performance, 
 # Google Search Console (gsc)
 
 Use the installed `gsc` binary. `gsc commands -o json` describes every command offline: flags, defaults,
-whether it reads or writes, and the API methods it calls. The full reference is
+whether it reads or writes, and the API methods it calls. `gsc commands resolve -- <arguments>` shows what
+those arguments would run, its effect, and whether it prints a credential. The full reference is
 [references/commands.md](references/commands.md); login methods are in [references/auth.md](references/auth.md).
 
 - Prefer `-o json --no-input` (CSV is flat and drops nested fields). Data is on stdout, diagnostics on stderr. Pass `--read-only` unless the user
