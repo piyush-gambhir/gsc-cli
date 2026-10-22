@@ -32,9 +32,7 @@ jobs:
       - run: go vet ./...
       - name: Staticcheck
         if: matrix.os == 'ubuntu-24.04'
-        # staticcheck 2026.2.1 (v0.8.1) cannot read Go 1.27.2 export data; this is the
-        # upstream master commit that can. Return to a tagged release once one ships.
-        run: go run honnef.co/go/tools/cmd/staticcheck@v0.7.0-0.dev.0.20261009230814-452d5bb86b45 -checks=all,-ST1000,-ST1003,-ST1005 ./...
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 -checks=all,-ST1000,-ST1003,-ST1005 ./...
       - name: Vulnerability scan
         if: matrix.os == 'ubuntu-24.04'
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
@@ -88,7 +86,7 @@ jobs:
           cache-dependency-path: cli-go/go.sum
       - uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
-          syft-version: v1.54.1
+          syft-version: v1.55.0
       - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           distribution: goreleaser

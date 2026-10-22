@@ -1,8 +1,6 @@
 module github.com/piyush-gambhir/gsc-cli/cli-go
 
-go 1.27
-
-toolchain go1.27.2
+go 1.27.3
 
 require (
 	github.com/gofrs/flock v0.13.1
@@ -19,6 +17,6 @@ require (
 require (
 	cloud.google.com/go/compute/metadata v0.10.0 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
-	github.com/godbus/dbus/v5 v5.2.3 // indirect
+	github.com/godbus/dbus/v5 v5.2.4 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 )
