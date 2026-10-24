@@ -7,6 +7,7 @@ const basePath = '/gsc-cli';
 
 /** @type {import('next').NextConfig} */
 const config = {
+  experimental: { agentUpgrade: 'security' },
   output: 'export',
   basePath,
   // Client code that builds URLs by hand (the search index) needs the prefix too.
