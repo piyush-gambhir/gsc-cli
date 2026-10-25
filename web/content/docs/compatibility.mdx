@@ -6,6 +6,10 @@ description: The Google API snapshot gsc is tested against, how it differs from 
 `gsc` targets the Search Console API at `https://searchconsole.googleapis.com/`. Older method pages still
 show `https://www.googleapis.com/`, which `gsc` does not use.
 
+## Node docs verification
+
+Verified 2026-10-26 with Node.js 26.12.1 and pnpm 12.15.0: generated command/API references, TypeScript 7 checks, static Cloudflare assets, installation search, and absolute agent Markdown links pass. The Worker passes a deployment dry run; this does not change the Go CLI runtime.
+
 ## Pinned API snapshot
 
 `gsc` is built and tested against Google's discovery documents, captured from Google's live discovery
