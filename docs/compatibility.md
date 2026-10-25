@@ -3,6 +3,10 @@
 `gsc` is built and tested against a pinned snapshot of Google's API definitions. This page records exactly
 which snapshot, where it came from, and how to move to a newer one.
 
+## Node docs verification
+
+Verified 2026-10-26 with Node.js 26.12.1 and pnpm 12.15.0: generated command/API references, TypeScript 7 checks, static Cloudflare assets, installation search, and absolute agent Markdown links pass. The Worker passes a deployment dry run; this does not change the Go CLI runtime.
+
 ## Pinned snapshot
 
 Captured **2026-10-07** from Google's live discovery service. The files are vendored unchanged in
