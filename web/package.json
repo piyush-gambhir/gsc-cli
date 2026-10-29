@@ -10,7 +10,9 @@
     "start": "serve out",
     "types:check": "node scripts/sync-reference.mjs && fumadocs-mdx && next typegen && tsc --noEmit",
     "test:search": "node scripts/check-search.mjs",
-    "test:llms": "node scripts/check-llms.mjs"
+    "test:llms": "node scripts/check-llms.mjs",
+    "bundle:analyze": "next analyze --output",
+    "bundle:export": "next analyze export"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
