@@ -34,3 +34,18 @@ archive with `gh attestation verify <archive> --repo piyush-gambhir/gsc-cli`. `g
 also check SHA-256 checksums.
 
 Google controls the upstream APIs. Report Google service vulnerabilities through Google's programs.
+
+## Reviewed scanner findings
+
+Reviewed on 2026-10-29. These exceptions describe the current code and maintainer model.
+Reassess them when authentication, transports, maintainers, or deployment boundaries change.
+
+- **Code-Review and Branch-Protection:** this is a solo-maintained project. Pull requests and
+  required automated checks provide the merge gate; there is no independent human approver.
+  An automated or AI review is useful but is not independent human review. Zero required
+  human approvals is an accepted limitation, not a claim that this Scorecard check is satisfied.
+- **Maintained:** the initial assessment covered a newly created repository with a short
+  activity history. Reassess commit and issue activity over time; age alone does not
+  establish maintenance.
+- **CII-Best-Practices:** an OpenSSF Best Practices badge is optional assurance work.
+  Its absence is not a demonstrated application vulnerability.
