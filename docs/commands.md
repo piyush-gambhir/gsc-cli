@@ -5,18 +5,18 @@ Generated from the command tree. Run `make docs` to refresh.
 Global flags apply to every command.
 
 ```text
-      --access-token string   Use this OAuth access token (prefer GSC_ACCESS_TOKEN)
-      --credentials string    Google credentials JSON: service account, authorized user, or external account (or GSC_CREDENTIALS)
-      --dry-run               For write commands: print the request and send nothing
-      --no-input              Never prompt or open a browser
-  -o, --output string         Output format: table, json, yaml, csv (default "table")
-      --profile string        Named profile (or GSC_PROFILE)
-  -q, --quiet                 Suppress informational stderr output
-      --read-only             Block remote writes, local credential changes, and self-update
-  -s, --site string           Property: sc-domain:example.com, https://www.example.com/, or a bare host (or GSC_SITE)
-      --timeout duration      HTTP request timeout (default 30s)
-  -v, --verbose               Log request method, URL, and status to stderr (never tokens or bodies)
-  -y, --yes                   Confirm destructive commands and updates without prompting
+      --access-token string      Use this OAuth access token (prefer GSC_ACCESS_TOKEN)
+      --credentials string       Google credentials JSON: service account, authorized user, or external account (or GSC_CREDENTIALS)
+      --dry-run[=true|false]     For write commands: print the request and send nothing
+      --no-input[=true|false]    Never prompt or open a browser
+  -o, --output string            Output format: table, json, yaml, csv (default "table")
+      --profile string           Named profile (or GSC_PROFILE)
+  -q, --quiet[=true|false]       Suppress informational stderr output
+      --read-only[=true|false]   Block remote writes, local credential changes, and self-update
+  -s, --site string              Property: sc-domain:example.com, https://www.example.com/, or a bare host (or GSC_SITE)
+      --timeout duration         HTTP request timeout (default 30s)
+  -v, --verbose[=true|false]     Log request method, URL, and status to stderr (never tokens or bodies)
+  -y, --yes[=true|false]         Confirm destructive commands and updates without prompting
 ```
 
 ## gsc
@@ -32,7 +32,7 @@ gsc [flags]
 ```
 
 ```text
-  -h, --help   help for gsc
+  -h, --help[=true|false]   help for gsc
 ```
 
 ## gsc api
@@ -55,8 +55,8 @@ gsc api METHOD PATH [flags]
 ```
 
 ```text
-      --data string   JSON request body, @file, or - for stdin
-  -h, --help          help for api
+      --data string         JSON request body, @file, or - for stdin
+  -h, --help[=true|false]   help for api
 ```
 
 ## gsc api methods
@@ -76,7 +76,7 @@ gsc api methods [flags]
 ```
 
 ```text
-  -h, --help   help for methods
+  -h, --help[=true|false]   help for methods
 ```
 
 ## gsc auth
@@ -88,7 +88,7 @@ gsc auth [flags]
 ```
 
 ```text
-  -h, --help   help for auth
+  -h, --help[=true|false]   help for auth
 ```
 
 ## gsc auth list
@@ -105,7 +105,7 @@ gsc auth list [flags]
 ```
 
 ```text
-  -h, --help   help for list
+  -h, --help[=true|false]   help for list
 ```
 
 ## gsc auth login
@@ -131,16 +131,16 @@ gsc auth login [flags]
 ```
 
 ```text
-      --adc                         Use Application Default Credentials (gcloud, workload identity federation, metadata server)
-      --client-secret-file string   Use your own Desktop OAuth client (JSON from Google Cloud Console)
-  -h, --help                        help for login
-      --impersonate string          With --adc: service account email to impersonate through IAM Credentials
-      --insecure-storage            Store the login in a 0600 plaintext file instead of the OS keychain
-      --no-browser                  Headless login: approve on any device, then paste the redirected URL
-      --no-verify                   Skip listing properties after login (no API call)
-      --scope string                Search Console access to request: full or readonly (default "full")
-      --service-account string      Save a service account JSON key file for this profile
-      --subject string              With --service-account: Workspace user to impersonate (domain-wide delegation)
+      --adc[=true|false]                Use Application Default Credentials (gcloud, workload identity federation, metadata server)
+      --client-secret-file string       Use your own Desktop OAuth client (JSON from Google Cloud Console)
+  -h, --help[=true|false]               help for login
+      --impersonate string              With --adc: service account email to impersonate through IAM Credentials
+      --insecure-storage[=true|false]   Store the login in a 0600 plaintext file instead of the OS keychain
+      --no-browser[=true|false]         Headless login: approve on any device, then paste the redirected URL
+      --no-verify[=true|false]          Skip listing properties after login (no API call)
+      --scope string                    Search Console access to request: full or readonly (default "full")
+      --service-account string          Save a service account JSON key file for this profile
+      --subject string                  With --service-account: Workspace user to impersonate (domain-wide delegation)
 ```
 
 ## gsc auth logout
@@ -161,8 +161,8 @@ gsc auth logout [flags]
 ```
 
 ```text
-  -h, --help     help for logout
-      --revoke   Also revoke access at Google (signs out every machine using the same OAuth client)
+  -h, --help[=true|false]     help for logout
+      --revoke[=true|false]   Also revoke access at Google (signs out every machine using the same OAuth client)
 ```
 
 ## gsc auth status
@@ -181,8 +181,8 @@ gsc auth status [flags]
 ```
 
 ```text
-  -h, --help     help for status
-      --verify   Check the credential by listing properties (one API call)
+  -h, --help[=true|false]     help for status
+      --verify[=true|false]   Check the credential by listing properties (one API call)
 ```
 
 ## gsc auth token
@@ -199,7 +199,7 @@ gsc auth token [flags]
 ```
 
 ```text
-  -h, --help   help for token
+  -h, --help[=true|false]   help for token
 ```
 
 ## gsc auth use
@@ -215,7 +215,7 @@ gsc auth use NAME [flags]
 ```
 
 ```text
-  -h, --help   help for use
+  -h, --help[=true|false]   help for use
 ```
 
 ## gsc commands
@@ -238,7 +238,7 @@ gsc commands [flags]
 ```
 
 ```text
-  -h, --help   help for commands
+  -h, --help[=true|false]   help for commands
 ```
 
 ## gsc commands resolve
@@ -255,7 +255,7 @@ gsc commands resolve -- <arguments> [flags]
 ```
 
 ```text
-  -h, --help   help for resolve
+  -h, --help[=true|false]   help for resolve
 ```
 
 ## gsc completion
@@ -273,7 +273,7 @@ gsc completion [bash|zsh|fish|powershell] [flags]
 ```
 
 ```text
-  -h, --help   help for completion
+  -h, --help[=true|false]   help for completion
 ```
 
 ## gsc config
@@ -285,7 +285,7 @@ gsc config [flags]
 ```
 
 ```text
-  -h, --help   help for config
+  -h, --help[=true|false]   help for config
 ```
 
 ## gsc config list-profiles
@@ -302,7 +302,7 @@ gsc config list-profiles [flags]
 ```
 
 ```text
-  -h, --help   help for list-profiles
+  -h, --help[=true|false]   help for list-profiles
 ```
 
 ## gsc config show
@@ -321,8 +321,8 @@ gsc config show [flags]
 ```
 
 ```text
-  -h, --help     help for show
-      --verify   Check the credential by listing properties (one API call)
+  -h, --help[=true|false]     help for show
+      --verify[=true|false]   Check the credential by listing properties (one API call)
 ```
 
 ## gsc config use-profile
@@ -338,7 +338,7 @@ gsc config use-profile NAME [flags]
 ```
 
 ```text
-  -h, --help   help for use-profile
+  -h, --help[=true|false]   help for use-profile
 ```
 
 ## gsc doctor
@@ -355,8 +355,8 @@ gsc doctor [flags]
 ```
 
 ```text
-  -h, --help     help for doctor
-      --online   Also call the API once to list properties
+  -h, --help[=true|false]     help for doctor
+      --online[=true|false]   Also call the API once to list properties
 ```
 
 ## gsc export
@@ -379,20 +379,20 @@ gsc export [flags]
 ```
 
 ```text
-      --aggregation string   auto, byPage, byProperty, or byNewsShowcasePanel
-      --data-state string    final (default), all (includes preliminary data), or hourly_all
-  -d, --dimension strings    Group by: date, hour, query, page, country, device, searchAppearance (repeat or comma list)
-      --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
-      --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-      --format string        File format: csv or ndjson (default "csv")
-  -h, --help                 help for export
-      --interval duration    Minimum time between the start of one day and the next (a day's pages are fetched back to back) (default 250ms)
-      --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
-      --out string           Output directory (created if missing)
-      --restart              Discard a manifest written for a different request
-      --retry int            Retry quota and server errors this many times per day, with backoff (default 0)
-      --start string         Start date YYYY-MM-DD (Pacific Time, inclusive)
-      --type string          Search type: web (default), image, video, news, discover, googleNews
+      --aggregation string     auto, byPage, byProperty, or byNewsShowcasePanel
+      --data-state string      final (default), all (includes preliminary data), or hourly_all
+  -d, --dimension strings      Group by: date, hour, query, page, country, device, searchAppearance (repeat or comma list)
+      --end string             End date YYYY-MM-DD (Pacific Time, inclusive)
+      --filter stringArray     Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
+      --format string          File format: csv or ndjson (default "csv")
+  -h, --help[=true|false]      help for export
+      --interval duration      Minimum time between the start of one day and the next (a day's pages are fetched back to back) (default 250ms)
+      --last string            Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
+      --out string             Output directory (created if missing)
+      --restart[=true|false]   Discard a manifest written for a different request
+      --retry int              Retry quota and server errors this many times per day, with backoff (default 0)
+      --start string           Start date YYYY-MM-DD (Pacific Time, inclusive)
+      --type string            Search type: web (default), image, video, news, discover, googleNews
 ```
 
 ## gsc freshness
@@ -412,8 +412,8 @@ gsc freshness [flags]
 ```
 
 ```text
-  -h, --help          help for freshness
-      --type string   Search type (default web)
+  -h, --help[=true|false]   help for freshness
+      --type string         Search type (default web)
 ```
 
 ## gsc insights
@@ -429,7 +429,7 @@ gsc insights [flags]
 ```
 
 ```text
-  -h, --help   help for insights
+  -h, --help[=true|false]   help for insights
 ```
 
 ## gsc insights cannibalization
@@ -450,7 +450,7 @@ gsc insights cannibalization [flags]
       --data-state string       final (default), all (includes preliminary data), or hourly_all
       --end string              End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray      Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                    help for cannibalization
+  -h, --help[=true|false]       help for cannibalization
       --last string             Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int               Maximum queries to show (default 25)
       --min-impressions float   Minimum total impressions for a query (default 100)
@@ -479,7 +479,7 @@ gsc insights decliners [flags]
       --data-state string    final (default), all (includes preliminary data), or hourly_all
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                 help for decliners
+  -h, --help[=true|false]    help for decliners
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int            Maximum rows to show (default 50)
       --min-clicks float     Minimum clicks in the comparison period (default 5)
@@ -507,7 +507,7 @@ gsc insights lost-queries [flags]
       --data-state string    final (default), all (includes preliminary data), or hourly_all
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                 help for lost-queries
+  -h, --help[=true|false]    help for lost-queries
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int            Maximum rows to show (default 50)
       --start string         Start date YYYY-MM-DD (Pacific Time, inclusive)
@@ -533,7 +533,7 @@ gsc insights low-ctr [flags]
       --end string              End date YYYY-MM-DD (Pacific Time, inclusive)
       --factor float            Flag queries with CTR below this fraction of the bucket median (default 0.5)
       --filter stringArray      Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                    help for low-ctr
+  -h, --help[=true|false]       help for low-ctr
       --last string             Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int               Maximum rows to show (default 50)
       --min-impressions float   Minimum impressions for a query to count (default 100)
@@ -561,7 +561,7 @@ gsc insights new-queries [flags]
       --data-state string    final (default), all (includes preliminary data), or hourly_all
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                 help for new-queries
+  -h, --help[=true|false]    help for new-queries
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int            Maximum rows to show (default 50)
       --start string         Start date YYYY-MM-DD (Pacific Time, inclusive)
@@ -586,7 +586,7 @@ gsc insights striking-distance [flags]
       --data-state string       final (default), all (includes preliminary data), or hourly_all
       --end string              End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray      Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                    help for striking-distance
+  -h, --help[=true|false]       help for striking-distance
       --last string             Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int               Maximum rows to show (default 50)
       --max-position float      Highest average position to include (default 20)
@@ -616,7 +616,7 @@ gsc inspect [URL...] [flags]
 
 ```text
       --file string         Read URLs from a file, one per line (- for stdin)
-  -h, --help                help for inspect
+  -h, --help[=true|false]   help for inspect
       --interval duration   Pause between inspections (stays under 600 per minute) (default 120ms)
       --language string     BCP 47 language for issue messages (default en-US)
       --max int             Inspect at most this many URLs (the per-property daily quota is 2,000) (default 2000)
@@ -642,16 +642,16 @@ gsc login [flags]
 ```
 
 ```text
-      --adc                         Use Application Default Credentials (gcloud, workload identity federation, metadata server)
-      --client-secret-file string   Use your own Desktop OAuth client (JSON from Google Cloud Console)
-  -h, --help                        help for login
-      --impersonate string          With --adc: service account email to impersonate through IAM Credentials
-      --insecure-storage            Store the login in a 0600 plaintext file instead of the OS keychain
-      --no-browser                  Headless login: approve on any device, then paste the redirected URL
-      --no-verify                   Skip listing properties after login (no API call)
-      --scope string                Search Console access to request: full or readonly (default "full")
-      --service-account string      Save a service account JSON key file for this profile
-      --subject string              With --service-account: Workspace user to impersonate (domain-wide delegation)
+      --adc[=true|false]                Use Application Default Credentials (gcloud, workload identity federation, metadata server)
+      --client-secret-file string       Use your own Desktop OAuth client (JSON from Google Cloud Console)
+  -h, --help[=true|false]               help for login
+      --impersonate string              With --adc: service account email to impersonate through IAM Credentials
+      --insecure-storage[=true|false]   Store the login in a 0600 plaintext file instead of the OS keychain
+      --no-browser[=true|false]         Headless login: approve on any device, then paste the redirected URL
+      --no-verify[=true|false]          Skip listing properties after login (no API call)
+      --scope string                    Search Console access to request: full or readonly (default "full")
+      --service-account string          Save a service account JSON key file for this profile
+      --subject string                  With --service-account: Workspace user to impersonate (domain-wide delegation)
 ```
 
 ## gsc performance
@@ -675,7 +675,7 @@ gsc performance [flags]
       --data-state string    final (default), all (includes preliminary data), or hourly_all
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                 help for performance
+  -h, --help[=true|false]    help for performance
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --start string         Start date YYYY-MM-DD (Pacific Time, inclusive)
       --type string          Search type: web (default), image, video, news, discover, googleNews
@@ -701,21 +701,21 @@ gsc query [flags]
 ```
 
 ```text
-      --aggregation string    auto, byPage, byProperty, or byNewsShowcasePanel
-      --all                   Fetch every row Google exposes for the query
-      --compare string        Also query a comparison period: previous or yoy
-      --data-state string     final (default), all (includes preliminary data), or hourly_all
-  -d, --dimension strings     Group by: date, hour, query, page, country, device, searchAppearance (repeat or comma list)
-      --end string            End date YYYY-MM-DD (Pacific Time, inclusive)
-      --filter stringArray    Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                  help for query
-      --last string           Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
-      --limit int             Maximum rows to return (pages of up to 25,000 are fetched) (default 1000)
-      --print-request         Print the request body and send nothing
-      --raw                   Print the API response unchanged (single page, no --all or --compare)
-      --request-file string   JSON request body to start from (flags override its fields; - for stdin)
-      --start string          Start date YYYY-MM-DD (Pacific Time, inclusive)
-      --type string           Search type: web (default), image, video, news, discover, googleNews
+      --aggregation string           auto, byPage, byProperty, or byNewsShowcasePanel
+      --all[=true|false]             Fetch every row Google exposes for the query
+      --compare string               Also query a comparison period: previous or yoy
+      --data-state string            final (default), all (includes preliminary data), or hourly_all
+  -d, --dimension strings            Group by: date, hour, query, page, country, device, searchAppearance (repeat or comma list)
+      --end string                   End date YYYY-MM-DD (Pacific Time, inclusive)
+      --filter stringArray           Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
+  -h, --help[=true|false]            help for query
+      --last string                  Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
+      --limit int                    Maximum rows to return (pages of up to 25,000 are fetched) (default 1000)
+      --print-request[=true|false]   Print the request body and send nothing
+      --raw[=true|false]             Print the API response unchanged (single page, no --all or --compare)
+      --request-file string          JSON request body to start from (flags override its fields; - for stdin)
+      --start string                 Start date YYYY-MM-DD (Pacific Time, inclusive)
+      --type string                  Search type: web (default), image, video, news, discover, googleNews
 ```
 
 ## gsc sitemaps
@@ -727,7 +727,7 @@ gsc sitemaps [flags]
 ```
 
 ```text
-  -h, --help   help for sitemaps
+  -h, --help[=true|false]   help for sitemaps
 ```
 
 ## gsc sitemaps delete
@@ -743,7 +743,7 @@ gsc sitemaps delete SITEMAP_URL [flags]
 ```
 
 ```text
-  -h, --help   help for delete
+  -h, --help[=true|false]   help for delete
 ```
 
 ## gsc sitemaps get
@@ -759,7 +759,7 @@ gsc sitemaps get SITEMAP_URL [flags]
 ```
 
 ```text
-  -h, --help   help for get
+  -h, --help[=true|false]   help for get
 ```
 
 ## gsc sitemaps list
@@ -776,8 +776,8 @@ gsc sitemaps list [flags]
 ```
 
 ```text
-  -h, --help           help for list
-      --index string   Only sitemaps listed in this sitemap index URL
+  -h, --help[=true|false]   help for list
+      --index string        Only sitemaps listed in this sitemap index URL
 ```
 
 ## gsc sitemaps submit
@@ -794,7 +794,7 @@ gsc sitemaps submit SITEMAP_URL [flags]
 ```
 
 ```text
-  -h, --help   help for submit
+  -h, --help[=true|false]   help for submit
 ```
 
 ## gsc sites
@@ -806,7 +806,7 @@ gsc sites [flags]
 ```
 
 ```text
-  -h, --help   help for sites
+  -h, --help[=true|false]   help for sites
 ```
 
 ## gsc sites add
@@ -827,7 +827,7 @@ gsc sites add SITE [flags]
 ```
 
 ```text
-  -h, --help   help for add
+  -h, --help[=true|false]   help for add
 ```
 
 ## gsc sites get
@@ -844,7 +844,7 @@ gsc sites get [SITE] [flags]
 ```
 
 ```text
-  -h, --help   help for get
+  -h, --help[=true|false]   help for get
 ```
 
 ## gsc sites list
@@ -861,7 +861,7 @@ gsc sites list [flags]
 ```
 
 ```text
-  -h, --help   help for list
+  -h, --help[=true|false]   help for list
 ```
 
 ## gsc sites remove
@@ -877,7 +877,7 @@ gsc sites remove SITE [flags]
 ```
 
 ```text
-  -h, --help   help for remove
+  -h, --help[=true|false]   help for remove
 ```
 
 ## gsc sites use
@@ -896,7 +896,7 @@ gsc sites use SITE [flags]
 ```
 
 ```text
-  -h, --help   help for use
+  -h, --help[=true|false]   help for use
 ```
 
 ## gsc status
@@ -915,8 +915,8 @@ gsc status [flags]
 ```
 
 ```text
-  -h, --help     help for status
-      --verify   Check the credential by listing properties (one API call)
+  -h, --help[=true|false]     help for status
+      --verify[=true|false]   Check the credential by listing properties (one API call)
 ```
 
 ## gsc top
@@ -928,7 +928,7 @@ gsc top [flags]
 ```
 
 ```text
-  -h, --help   help for top
+  -h, --help[=true|false]   help for top
 ```
 
 ## gsc top appearance
@@ -945,12 +945,12 @@ gsc top appearance [flags]
 
 ```text
       --aggregation string   auto, byPage, byProperty, or byNewsShowcasePanel
-      --all                  Fetch every row Google exposes for the query
+      --all[=true|false]     Fetch every row Google exposes for the query
       --compare string       Also query a comparison period: previous or yoy
       --data-state string    final (default), all (includes preliminary data), or hourly_all
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                 help for appearance
+  -h, --help[=true|false]    help for appearance
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int            Maximum rows to return (pages of up to 25,000 are fetched) (default 25)
       --start string         Start date YYYY-MM-DD (Pacific Time, inclusive)
@@ -971,12 +971,12 @@ gsc top countries [flags]
 
 ```text
       --aggregation string   auto, byPage, byProperty, or byNewsShowcasePanel
-      --all                  Fetch every row Google exposes for the query
+      --all[=true|false]     Fetch every row Google exposes for the query
       --compare string       Also query a comparison period: previous or yoy
       --data-state string    final (default), all (includes preliminary data), or hourly_all
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                 help for countries
+  -h, --help[=true|false]    help for countries
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int            Maximum rows to return (pages of up to 25,000 are fetched) (default 25)
       --start string         Start date YYYY-MM-DD (Pacific Time, inclusive)
@@ -997,12 +997,12 @@ gsc top devices [flags]
 
 ```text
       --aggregation string   auto, byPage, byProperty, or byNewsShowcasePanel
-      --all                  Fetch every row Google exposes for the query
+      --all[=true|false]     Fetch every row Google exposes for the query
       --compare string       Also query a comparison period: previous or yoy
       --data-state string    final (default), all (includes preliminary data), or hourly_all
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                 help for devices
+  -h, --help[=true|false]    help for devices
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int            Maximum rows to return (pages of up to 25,000 are fetched) (default 25)
       --start string         Start date YYYY-MM-DD (Pacific Time, inclusive)
@@ -1024,12 +1024,12 @@ gsc top pages [flags]
 
 ```text
       --aggregation string   auto, byPage, byProperty, or byNewsShowcasePanel
-      --all                  Fetch every row Google exposes for the query
+      --all[=true|false]     Fetch every row Google exposes for the query
       --compare string       Also query a comparison period: previous or yoy
       --data-state string    final (default), all (includes preliminary data), or hourly_all
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                 help for pages
+  -h, --help[=true|false]    help for pages
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int            Maximum rows to return (pages of up to 25,000 are fetched) (default 25)
       --start string         Start date YYYY-MM-DD (Pacific Time, inclusive)
@@ -1051,12 +1051,12 @@ gsc top queries [flags]
 
 ```text
       --aggregation string   auto, byPage, byProperty, or byNewsShowcasePanel
-      --all                  Fetch every row Google exposes for the query
+      --all[=true|false]     Fetch every row Google exposes for the query
       --compare string       Also query a comparison period: previous or yoy
       --data-state string    final (default), all (includes preliminary data), or hourly_all
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                 help for queries
+  -h, --help[=true|false]    help for queries
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --limit int            Maximum rows to return (pages of up to 25,000 are fetched) (default 25)
       --start string         Start date YYYY-MM-DD (Pacific Time, inclusive)
@@ -1086,7 +1086,7 @@ gsc trend [flags]
       --data-state string    final (default), all (includes preliminary data), or hourly_all
       --end string           End date YYYY-MM-DD (Pacific Time, inclusive)
       --filter stringArray   Filter 'DIM OP VALUE'; OP is = != ~ !~ =~ !=~ (contains/regex); repeat to AND
-  -h, --help                 help for trend
+  -h, --help[=true|false]    help for trend
       --last string          Window ending at the latest available date: 7d, 28d, 4w, 3m, 16m (default 28d)
       --start string         Start date YYYY-MM-DD (Pacific Time, inclusive)
       --type string          Search type: web (default), image, video, news, discover, googleNews
@@ -1123,8 +1123,8 @@ gsc update [flags]
 ```
 
 ```text
-      --check   Only report the current and latest versions (always checks the github.com releases page)
-  -h, --help    help for update
+      --check[=true|false]   Only report the current and latest versions (always checks the github.com releases page)
+  -h, --help[=true|false]    help for update
 ```
 
 ## gsc version
@@ -1145,5 +1145,5 @@ gsc version [flags]
 ```
 
 ```text
-  -h, --help   help for version
+  -h, --help[=true|false]   help for version
 ```
