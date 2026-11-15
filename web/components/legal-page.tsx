@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 
 interface LegalPageProps {
   title: string;
-  /** Date the page's current text took effect; update it when the text changes. */
   effective?: string;
   children: ReactNode;
 }

@@ -27,7 +27,7 @@ type queryFlags struct {
 	requestFile                       string
 	printRequest, raw                 bool
 	defaultLast                       string
-	fixedDims                         []string // set by helper commands; nil means use --dimension
+	fixedDims                         []string
 	noDims, noCompare, noRaw, noLimit bool
 }
 
@@ -63,11 +63,10 @@ func orDefault(s, d string) string {
 	return s
 }
 
-// spec is a request whose dates may still depend on the latest available day.
 type spec struct {
 	req  client.QueryRequest
-	last string // pending --last window; empty when dates are explicit
-	end  string // explicit --end that anchors --last
+	last string
+	end  string
 }
 
 func (a *app) buildSpec(cmd *cobra.Command, q *queryFlags) (*spec, error) {
@@ -136,7 +135,6 @@ func (a *app) buildSpec(cmd *cobra.Command, q *queryFlags) (*spec, error) {
 	if q.limit < 0 {
 		return nil, errors.New("--limit must be positive")
 	}
-	// A request file's rowLimit stands unless --limit was given explicitly.
 	if f := cmd.Flags().Lookup("limit"); f != nil && !f.Changed && sp.req.RowLimit > 0 {
 		q.limit = sp.req.RowLimit
 	}
@@ -146,7 +144,6 @@ func (a *app) buildSpec(cmd *cobra.Command, q *queryFlags) (*spec, error) {
 	if q.raw && (q.all || q.compare != "") {
 		return nil, errors.New("--raw prints one API response; it cannot be combined with --all or --compare")
 	}
-	// Validate everything except the pending dates before any network call.
 	probe := sp.req
 	if sp.last != "" {
 		end := a.today().AddDays(-1)
@@ -192,8 +189,6 @@ func (l *limitedReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// latestDate finds the newest day with data for the data state (one small
-// request). It is the anchor for --last.
 func (a *app) latestDate(ctx context.Context, cl *client.Client, site string, req client.QueryRequest, state string) (analytics.Date, *client.QueryResponse, error) {
 	today := a.today()
 	probe := client.QueryRequest{StartDate: today.AddDays(-10).String(), EndDate: today.String(), Dimensions: []string{"date"},
@@ -214,8 +209,6 @@ func (a *app) latestDate(ctx context.Context, cl *client.Client, site string, re
 	return latest, resp, nil
 }
 
-// finalize resolves pending --last dates, clips helper ranges to data
-// retention, and validates the final request.
 func (a *app) finalize(ctx context.Context, cl *client.Client, site string, sp *spec, estimateOnly bool) error {
 	req := &sp.req
 	if sp.last != "" {
@@ -261,7 +254,6 @@ func (a *app) finalize(ctx context.Context, cl *client.Client, site string, sp *
 		}
 		req.StartDate, req.EndDate = r.Start.String(), r.End.String()
 	}
-	// Normalize validates the request offline: its errors are bad input.
 	warnings, err := analytics.Normalize(req, a.today())
 	if err != nil {
 		return withKind(kindUsage, err)
@@ -272,7 +264,6 @@ func (a *app) finalize(ctx context.Context, cl *client.Client, site string, sp *
 	return nil
 }
 
-// runQuery executes a query spec and returns a printable result.
 func (a *app) runQuery(cmd *cobra.Command, q *queryFlags) (any, *analytics.Result, error) {
 	ctx := cmd.Context()
 	sp, err := a.buildSpec(cmd, q)
@@ -362,7 +353,6 @@ func (a *app) query() *cobra.Command {
 	return c
 }
 
-// printRaw writes an API response unchanged (indented for JSON-friendly reading).
 func (a *app) printRaw(b []byte) error {
 	var buf bytes.Buffer
 	if json.Indent(&buf, b, "", "  ") != nil {

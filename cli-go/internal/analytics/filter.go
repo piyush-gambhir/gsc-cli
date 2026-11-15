@@ -8,14 +8,10 @@ import (
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/client"
 )
 
-// Dimensions accepted for grouping, in Google's spelling.
 var Dimensions = []string{"date", "hour", "query", "page", "country", "device", "searchAppearance"}
 
-// filterDimensions can appear in dimensionFilterGroups.
 var filterDimensions = []string{"query", "page", "country", "device", "searchAppearance"}
 
-// Operators maps DSL tokens to API operators. Longer tokens come first so
-// "!=~" is not read as "!=".
 var Operators = []struct{ Token, API string }{
 	{"!=~", "excludingRegex"},
 	{"=~", "includingRegex"},
@@ -25,7 +21,6 @@ var Operators = []struct{ Token, API string }{
 	{"~", "contains"},
 }
 
-// CanonicalDimension matches a dimension name case-insensitively.
 func CanonicalDimension(name string, allowed []string) (string, bool) {
 	for _, d := range allowed {
 		if strings.EqualFold(name, d) {
@@ -35,8 +30,6 @@ func CanonicalDimension(name string, allowed []string) (string, bool) {
 	return "", false
 }
 
-// ParseFilter reads "DIM OP VALUE", for example `query ~ running shoes` or
-// `page =~ ^https://example.com/blog/`. Surrounding quotes on VALUE are removed.
 func ParseFilter(s string) (client.Filter, error) {
 	s = strings.TrimSpace(s)
 	i := strings.IndexAny(s, " \t=!~")

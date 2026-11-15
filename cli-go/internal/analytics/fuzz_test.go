@@ -8,10 +8,6 @@ import (
 	"time"
 )
 
-// Fuzz targets for user input parsed before any request: the --filter DSL,
-// YYYY-MM-DD dates, and --last spans. `go test` runs the seeds;
-// `go test -run=^$ -fuzz=FuzzParseFilter ./internal/analytics` explores further.
-
 func FuzzParseFilter(f *testing.F) {
 	for _, s := range []string{"query ~ running shoes", "page =~ ^https://example.com/blog/", "country = ind", "device != MOBILE",
 		"query !~ 'free'", `page !=~ "\.pdf$"`, "searchAppearance = NEWS_SHOWCASE", "query=~(", "query", "= x", "QUERY ~ x", "query ~ \"\""} {
@@ -34,8 +30,6 @@ func FuzzParseFilter(f *testing.F) {
 				t.Fatalf("%q accepted an invalid regex: %v", s, err)
 			}
 		}
-		// Rendering the filter back as DSL parses to the same filter, unless the
-		// value only survives because of trimming or quote stripping.
 		v := got.Expression
 		if strings.TrimSpace(v) != v || len(v) >= 2 && (v[0] == '"' || v[0] == '\'') && v[len(v)-1] == v[0] {
 			return
@@ -62,8 +56,6 @@ func FuzzParseDate(f *testing.F) {
 	})
 }
 
-// FuzzLastRange checks that every accepted --last span is a non-empty range
-// ending at end, with the exact length for day and week spans.
 func FuzzLastRange(f *testing.F) {
 	for _, s := range []string{"7d", "28d", "4w", "3m", "16m", "1y", "0d", "9999d", "9999w", "9999m", "9999y", "10000d", "9223372036854775807d", "1537228672809129302w", "768614336404564651y", "x"} {
 		f.Add(s, int64(0))

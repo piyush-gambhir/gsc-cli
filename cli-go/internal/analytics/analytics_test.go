@@ -44,11 +44,9 @@ func TestLastRangeAndMonthClamping(t *testing.T) {
 }
 
 func TestPacificDayBoundaryAndDST(t *testing.T) {
-	// 06:30 UTC on Nov 1 2026 is still Oct 31 in Los Angeles (PDT, UTC-7).
 	if got := DateOf(time.Date(2026, 11, 1, 6, 30, 0, 0, time.UTC)).String(); got != "2026-10-31" {
 		t.Fatal(got)
 	}
-	// After the Nov 1 DST change (PST, UTC-8), 07:30 UTC on Nov 2 is Nov 1.
 	if got := DateOf(time.Date(2026, 11, 2, 7, 30, 0, 0, time.UTC)).String(); got != "2026-11-01" {
 		t.Fatal(got)
 	}
@@ -145,7 +143,7 @@ func TestNormalizeDocumentedRules(t *testing.T) {
 
 type fakeQuerier struct {
 	total    int
-	failAt   int // page index that fails, -1 never
+	failAt   int
 	stuck    bool
 	requests []client.QueryRequest
 }
@@ -171,7 +169,6 @@ func TestFetchPagination(t *testing.T) {
 	req := client.QueryRequest{StartDate: "2026-09-01", EndDate: "2026-09-30", Dimensions: []string{"query"}}
 	f := &fakeQuerier{total: 30000, failAt: -1}
 	res, err := Fetch(ctx, f, "s", req, 0, true, nil)
-	// Two data pages, then the empty page that proves the end (Google's extraction guide).
 	if err != nil || len(res.Rows) != 30000 || !res.Complete || len(f.requests) != 3 {
 		t.Fatalf("all: rows=%d complete=%v requests=%d %v", len(res.Rows), res.Complete, len(f.requests), err)
 	}
@@ -194,7 +191,6 @@ func TestFetchPagination(t *testing.T) {
 	if _, err := Fetch(ctx, &fakeQuerier{total: 60000, failAt: -1, stuck: true}, "s", req, 0, true, nil); err == nil || !strings.Contains(err.Error(), "did not advance") {
 		t.Fatalf("stuck pagination: %v", err)
 	}
-	// A short page followed by more exposed rows must not end the fetch early.
 	short := &shortThenMore{}
 	res, err = Fetch(ctx, short, "s", req, 0, true, nil)
 	if err != nil || len(res.Rows) != 3 || !res.Complete {
@@ -202,7 +198,6 @@ func TestFetchPagination(t *testing.T) {
 	}
 }
 
-// shortThenMore returns 2 rows, then 1 more row, then nothing.
 type shortThenMore struct{ calls int }
 
 func (s *shortThenMore) Query(_ context.Context, _ string, req client.QueryRequest) (*client.QueryResponse, error) {
@@ -269,9 +264,9 @@ func TestCompareUsesNullForUnobserved(t *testing.T) {
 
 func TestRollupMath(t *testing.T) {
 	rows := []client.Row{
-		{Keys: []string{"2026-09-14"}, Clicks: 10, Impressions: 100, Position: 2}, // Monday
-		{Keys: []string{"2026-09-20"}, Clicks: 0, Impressions: 300, Position: 10}, // Sunday, same ISO week
-		{Keys: []string{"2026-09-21"}, Clicks: 5, Impressions: 50, Position: 4},   // next Monday
+		{Keys: []string{"2026-09-14"}, Clicks: 10, Impressions: 100, Position: 2},
+		{Keys: []string{"2026-09-20"}, Clicks: 0, Impressions: 300, Position: 10},
+		{Keys: []string{"2026-09-21"}, Clicks: 5, Impressions: 50, Position: 4},
 	}
 	weeks, err := Rollup(rows, "week")
 	if err != nil || len(weeks) != 2 || weeks[0].Keys[0] != "2026-09-14" {

@@ -7,8 +7,6 @@ import (
 )
 
 func TestTokenErrorsNeverEchoCredentials(t *testing.T) {
-	// Fixtures are assembled at run time so the source never contains a
-	// token-shaped literal that secret scanners would flag.
 	jwt := "eyJ" + "hbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.c2lnbmF0dXJlLXNpZ25hdHVyZS1zaWduYXR1cmU"
 	access := "ya" + "29.a0AfH6SMBxyzSECRET-token_value.more"
 	refresh := "1/" + "/0gSecretRefreshTokenValue-abc"

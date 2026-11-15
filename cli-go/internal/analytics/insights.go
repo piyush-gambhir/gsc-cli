@@ -11,8 +11,6 @@ import (
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/output"
 )
 
-// Insight is a locally computed view over explicit queries. Thresholds and
-// the note travel with the rows so readers know exactly what was computed.
 type Insight struct {
 	Name       string
 	Note       string
@@ -42,7 +40,6 @@ func (in *Insight) Table() output.Table {
 	return output.Table{Columns: in.Columns, Rows: in.Rows, Human: MetricFormats}
 }
 
-// Describe summarizes thresholds for stderr.
 func (in *Insight) Describe() string {
 	s := in.Name + ":"
 	for _, t := range in.Thresholds {
@@ -58,8 +55,6 @@ func limitRows(rows [][]any, limit int) [][]any {
 	return rows
 }
 
-// StrikingDistance lists queries ranking just off the top positions with
-// enough impressions to matter.
 func StrikingDistance(src *Result, minPos, maxPos, minImpressions float64, limit int) *Insight {
 	in := &Insight{Name: "striking-distance", Sources: []*Result{src},
 		Note:       "Queries whose average position is in the range, sorted by impressions. Average position is per query across all pages.",
@@ -87,9 +82,6 @@ func positionBucket(p float64) string {
 	}
 }
 
-// LowCTR flags queries whose CTR is well below the site's own median CTR for
-// the same position bucket. Buckets with fewer than three qualifying queries
-// are skipped because a median of one or two rows is not meaningful.
 func LowCTR(src *Result, minImpressions, factor float64, limit int) *Insight {
 	in := &Insight{Name: "low-ctr", Sources: []*Result{src},
 		Note:       "expected_ctr is this site's median CTR among queries in the same position bucket; missed_clicks_estimate = impressions x (expected_ctr - ctr). Estimates, not forecasts.",
@@ -137,9 +129,6 @@ func LowCTR(src *Result, minImpressions, factor float64, limit int) *Insight {
 	return in
 }
 
-// Cannibalization finds queries where two or more pages each take a
-// meaningful share of the query's impressions. src must be grouped by query
-// then page.
 func Cannibalization(src *Result, minShare, minQueryImpressions float64, limit int) *Insight {
 	in := &Insight{Name: "cannibalization", Sources: []*Result{src},
 		Note:       "share is the page's fraction of the query's impressions among returned rows. Rows are one per competing page, grouped by query.",
@@ -190,7 +179,6 @@ func Cannibalization(src *Result, minShare, minQueryImpressions float64, limit i
 	return in
 }
 
-// Decliners lists rows observed in both periods whose clicks fell.
 func Decliners(c *Comparison, minPrevClicks float64, limit int) *Insight {
 	dims := c.Current.Request.Dimensions
 	in := &Insight{Name: "decliners", Sources: []*Result{c.Current, c.Previous},
@@ -218,9 +206,6 @@ func Decliners(c *Comparison, minPrevClicks float64, limit int) *Insight {
 	return in
 }
 
-// Exposure lists rows returned in only one period: "new" (current only) or
-// "lost" (previous only). Absence means "not among the rows Google returned
-// within the fetched limit", which is not proof that the query disappeared.
 func Exposure(c *Comparison, which string, limit int) *Insight {
 	dims := c.Current.Request.Dimensions
 	name, note := "new-queries", "Rows returned for the current period but not for the comparison period (newly exposed within the fetched limit)."

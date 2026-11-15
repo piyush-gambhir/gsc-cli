@@ -1,4 +1,3 @@
-// Package client calls the Google Search Console API over plain HTTPS.
 package client
 
 import (
@@ -19,29 +18,24 @@ const (
 	maxResponse = 32 << 20
 )
 
-// TokenSource returns a bearer access token for each request.
 type TokenSource interface {
 	AccessToken(ctx context.Context) (string, error)
 }
 
 type Client struct {
-	HTTP *http.Client
-	Base string
-	Auth TokenSource
-	// Log receives method, URL, and status lines under --verbose.
+	HTTP      *http.Client
+	Base      string
+	Auth      TokenSource
 	Log       io.Writer
 	UserAgent string
 }
 
-// NoRedirects is the CheckRedirect policy for every HTTP client that carries
-// credentials: a redirect target never receives the Authorization header.
 func NoRedirects(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
 
 func New(httpClient *http.Client, auth TokenSource) *Client {
 	return &Client{HTTP: httpClient, Base: DefaultBase, Auth: auth, UserAgent: "gsc-cli"}
 }
 
-// APIError is a non-2xx response, decoded from Google's error envelope when present.
 type APIError struct {
 	Status       int    `json:"status"`
 	GoogleStatus string `json:"google_status,omitempty"`
@@ -65,9 +59,6 @@ func (e *APIError) Error() string {
 	return msg
 }
 
-// Quota reports whether the error is a rate or quota failure (403 or 429).
-// requestError is a transport failure. Its message is scrubbed of the URL and
-// token, and Unwrap keeps the cause so callers can tell timeouts from network errors.
 type requestError struct {
 	msg   string
 	cause error
@@ -84,7 +75,6 @@ func (e *APIError) Quota() bool {
 	return e.Status == http.StatusTooManyRequests || e.GoogleStatus == "RESOURCE_EXHAUSTED"
 }
 
-// Hint explains what to do next for the failures users hit most.
 func (e *APIError) Hint() string {
 	switch {
 	case e.Quota():
@@ -135,9 +125,6 @@ func decodeError(res *http.Response, body []byte) *APIError {
 	return e
 }
 
-// sanitize makes response text safe to print: control characters (terminal
-// escapes) become spaces, invalid UTF-8 is dropped, and the length is bounded
-// without splitting a character.
 func sanitize(s string) string {
 	s = strings.Map(func(r rune) rune {
 		if unicode.IsControl(r) {
@@ -151,8 +138,6 @@ func sanitize(s string) string {
 	return s
 }
 
-// EscapeSegment percent-encodes everything except RFC 3986 unreserved
-// characters, so a whole property URL or sitemap URL is one path segment.
 func EscapeSegment(s string) string {
 	var b strings.Builder
 	for i := 0; i < len(s); i++ {
@@ -166,14 +151,11 @@ func EscapeSegment(s string) string {
 	return b.String()
 }
 
-// sensitiveParams are query parameters that can carry credentials.
 var sensitiveParams = map[string]bool{
 	"access_token": true, "oauth_token": true, "token": true, "id_token": true, "refresh_token": true,
 	"key": true, "api_key": true, "apikey": true, "client_secret": true, "code": true, "assertion": true,
 }
 
-// SafeURL returns raw with credential-bearing query parameters masked, for
-// logs, dry-run output, and errors. url.URL.Redacted only hides passwords.
 func SafeURL(raw string) string {
 	u, err := url.Parse(raw)
 	if err != nil {
@@ -181,7 +163,6 @@ func SafeURL(raw string) string {
 	}
 	q, err := url.ParseQuery(u.RawQuery)
 	if err != nil {
-		// An unparseable query could hide a credential; mask all of it.
 		u.RawQuery = "REDACTED"
 		return u.Redacted()
 	}
@@ -198,8 +179,6 @@ func SafeURL(raw string) string {
 	return u.Redacted()
 }
 
-// Do sends one request and returns the response body. path must already be
-// escaped. body, when non-nil, is sent as JSON.
 func (c *Client) Do(ctx context.Context, method, path string, query url.Values, body any) ([]byte, error) {
 	var reader io.Reader
 	if body != nil {
@@ -281,7 +260,6 @@ func (c *Client) getJSON(ctx context.Context, method, path string, query url.Val
 
 func sitePath(site string) string { return "/webmasters/v3/sites/" + EscapeSegment(site) }
 
-// SiteEntry is one property and the caller's permission level on it.
 type SiteEntry struct {
 	SiteURL         string `json:"siteUrl"`
 	PermissionLevel string `json:"permissionLevel"`
@@ -316,8 +294,6 @@ func (c *Client) DeleteSite(ctx context.Context, site string) error {
 	return err
 }
 
-// ListSitemaps returns sitemaps as decoded JSON objects so new or legacy fields
-// (and int64 counters encoded as strings) survive unchanged.
 func (c *Client) ListSitemaps(ctx context.Context, site, sitemapIndex string) ([]map[string]any, error) {
 	var q url.Values
 	if sitemapIndex != "" {
@@ -351,7 +327,6 @@ func (c *Client) DeleteSitemap(ctx context.Context, site, feed string) error {
 	return err
 }
 
-// Inspect calls URL Inspection and returns the decoded inspectionResult.
 func (c *Client) Inspect(ctx context.Context, inspectionURL, site, languageCode string) (map[string]any, error) {
 	body := map[string]string{"inspectionUrl": inspectionURL, "siteUrl": site}
 	if languageCode != "" {

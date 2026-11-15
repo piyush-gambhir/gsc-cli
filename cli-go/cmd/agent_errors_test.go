@@ -8,8 +8,6 @@ import (
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/client"
 )
 
-// A typo under a command group is a usage error with a suggestion, not help
-// on stdout with exit 0; the bare group still prints help.
 func TestUnknownSubcommandFails(t *testing.T) {
 	isolate(t)
 	f := newFake(t)
@@ -23,7 +21,6 @@ func TestUnknownSubcommandFails(t *testing.T) {
 	}
 }
 
-// Errors raised before Cobra parses -o still come out structured.
 func TestEarlyErrorsHonorOutputFlag(t *testing.T) {
 	isolate(t)
 	f := newFake(t)
@@ -37,7 +34,6 @@ func TestEarlyErrorsHonorOutputFlag(t *testing.T) {
 	if r := cli(t, f, now, "", "qurey", "-o", "yaml"); r.code != 1 || !strings.HasPrefix(r.errOut, "error:") {
 		t.Fatalf("yaml: %q", r.errOut)
 	}
-	// A parsed -o wins over a later flag value that merely looks like one.
 	t.Setenv("GSC_ACCESS_TOKEN", "env-token")
 	r := cli(t, f, now, "", "query", "-s", "sc-domain:example.com", "-o", "json", "--filter", "-oyaml")
 	var e map[string]any
@@ -46,7 +42,6 @@ func TestEarlyErrorsHonorOutputFlag(t *testing.T) {
 	}
 }
 
-// Tables drop the envelope, so preliminary rows get a stderr note; JSON labels them itself.
 func TestPreliminaryDataNoteForTables(t *testing.T) {
 	isolate(t)
 	t.Setenv("GSC_ACCESS_TOKEN", "env-token")
@@ -63,8 +58,6 @@ func TestPreliminaryDataNoteForTables(t *testing.T) {
 	}
 }
 
-// --help before a flag with a value still shows help (Cobra registers --help
-// lazily, so it used to swallow -o and fail on "json" as a command).
 func TestHelpBeforeValueFlag(t *testing.T) {
 	isolate(t)
 	f := newFake(t)
@@ -73,7 +66,6 @@ func TestHelpBeforeValueFlag(t *testing.T) {
 	}
 }
 
-// Ungrouped totals carry no first-incomplete marker; --data-state all still warns in tables.
 func TestPreliminaryWarningForTotals(t *testing.T) {
 	isolate(t)
 	t.Setenv("GSC_ACCESS_TOKEN", "env-token")

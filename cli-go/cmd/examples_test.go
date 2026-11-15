@@ -8,8 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Every runnable leaf command shows at least one example in its help, and
-// every example names the command it belongs to.
 func TestEveryCommandHasExamples(t *testing.T) {
 	var walk func(*cobra.Command)
 	walk = func(c *cobra.Command) {

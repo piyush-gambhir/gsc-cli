@@ -1,8 +1,3 @@
-// Package oauthflow runs the browser half of an OAuth authorization-code
-// login for a command-line tool: a one-shot loopback listener on 127.0.0.1, or
-// a paste flow for machines without a local browser. It returns the
-// authorization code; token exchange (and PKCE) stays with the caller because
-// it is provider-specific.
 package oauthflow
 
 import (
@@ -26,26 +21,13 @@ import (
 )
 
 type Options struct {
-	// AuthURL builds the provider consent URL for this redirect URI and state.
-	AuthURL func(redirectURI, state string) string
-	// Port is the loopback port; 0 lets the OS choose (only for providers that
-	// accept any loopback port, such as Google Desktop clients).
-	Port int
-	// Path is the callback path, default "/".
-	Path string
-	// Timeout bounds the wait for the browser, default 5 minutes.
-	Timeout time.Duration
-	// OpenBrowser opens the consent URL; nil uses the system browser. It is
-	// best-effort: the URL is always printed too.
-	OpenBrowser func(string) error
-	// Log receives human instructions (stderr in the CLIs, never stdout).
-	Log io.Writer
-	// Paste, when set, skips the listener: the user approves on any device and
-	// pastes the final redirected URL, which is read from this reader.
-	Paste io.Reader
-	// AllowMissingState accepts a callback without a state parameter, for
-	// providers that do not echo it. A present but wrong state is always
-	// rejected.
+	AuthURL           func(redirectURI, state string) string
+	Port              int
+	Path              string
+	Timeout           time.Duration
+	OpenBrowser       func(string) error
+	Log               io.Writer
+	Paste             io.Reader
 	AllowMissingState bool
 }
 
@@ -54,7 +36,6 @@ type Result struct {
 	RedirectURI string
 }
 
-// Run performs the browser step and returns the authorization code.
 func Run(ctx context.Context, o Options) (*Result, error) {
 	if o.AuthURL == nil {
 		return nil, errors.New("oauthflow: AuthURL is required")
@@ -96,7 +77,6 @@ func listen(ctx context.Context, o Options, state string) (*Result, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc(o.Path, func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
-		// Ignore stray requests (favicon, prefetch) that are not a provider callback.
 		if r.URL.Path != o.Path || (!q.Has("code") && !q.Has("error")) {
 			http.NotFound(w, r)
 			return
@@ -160,7 +140,6 @@ func paste(o Options, state string) (*Result, error) {
 }
 
 func checkCallback(q url.Values, state string, allowMissingState bool) (string, error) {
-	// State first: an error callback must belong to this login attempt too.
 	got := q.Get("state")
 	if got != state && !(got == "" && allowMissingState) {
 		return "", errors.New("state mismatch; the callback did not come from this login attempt")
@@ -179,8 +158,6 @@ func checkCallback(q url.Values, state string, allowMissingState bool) (string, 
 	return code, nil
 }
 
-// printable strips control characters (such as terminal escape sequences) from
-// provider-supplied text before it reaches the terminal, and caps its length.
 func printable(s string, max int) string {
 	s = strings.Map(func(r rune) rune {
 		if unicode.IsControl(r) {
@@ -213,10 +190,6 @@ func systemBrowser(u string) error {
 	}
 }
 
-// writePage renders the tab the browser lands on after the provider redirects
-// back. The page is self-contained (the CSP forbids scripts and network loads)
-// and follows the OS light or dark theme. The browser runs on this machine, so
-// runtime.GOOS picks the close-tab shortcut.
 func writePage(w http.ResponseWriter, err error) {
 	h := w.Header()
 	h.Set("Content-Type", "text/html; charset=utf-8")

@@ -54,7 +54,6 @@ func (a *app) update() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// A local build ("dev") can always install the release.
 			available := update.Newer(r.Version(), current) || !update.IsRelease(current)
 			result := map[string]any{"current_version": current, "latest_version": r.Version(),
 				"update_available": available, "release_url": r.URL, "install_method": method}
@@ -87,7 +86,6 @@ func (a *app) update() *cobra.Command {
 			if !a.yes && a.isTerminal() {
 				fmt.Fprintf(a.errOut, "gsc %s -> %s\nUpdate now? [Y/n] ", from, to)
 				line, err := a.reader().ReadString('\n')
-				// Enter means yes; Ctrl-D (EOF) or a read error is not an answer.
 				if answer := strings.ToLower(strings.TrimSpace(line)); err != nil || (answer != "" && answer != "y" && answer != "yes") {
 					return errors.New("update cancelled")
 				}
@@ -107,7 +105,6 @@ func (a *app) update() *cobra.Command {
 	return c
 }
 
-// updateResult prints the outcome as text in table mode and as data otherwise.
 func (a *app) updateResult(data map[string]any, text string) error {
 	if a.format == "table" {
 		_, err := fmt.Fprintln(a.out, text)
@@ -116,7 +113,6 @@ func (a *app) updateResult(data map[string]any, text string) error {
 	return a.print(data)
 }
 
-// executable is the resolved path of the running gsc.
 func (a *app) executable() (string, error) {
 	if a.exePath != "" {
 		return a.exePath, nil

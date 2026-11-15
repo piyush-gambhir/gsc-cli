@@ -97,7 +97,6 @@ func (a *app) sitesUse() *cobra.Command {
 		}}
 }
 
-// dryRunPlan prints the request a write command would send.
 func (a *app) dryRunPlan(method, path string, body any) error {
 	plan := map[string]any{"dry_run": true, "method": method, "url": client.SafeURL(client.DefaultBase + path)}
 	if body != nil {
@@ -129,7 +128,6 @@ func (a *app) sitesAdd() *cobra.Command {
 			if err := c.AddSite(cmd.Context(), args[0]); err != nil {
 				return err
 			}
-			// Read back what Google granted: a URL-prefix under an owned domain property is verified at once.
 			out := map[string]any{"site": args[0], "added": true}
 			if e, err := c.GetSite(cmd.Context(), args[0]); err == nil {
 				out["permissionLevel"] = e.PermissionLevel
@@ -249,7 +247,6 @@ func (a *app) sitemapWrite(cmd *cobra.Command, feed, method string) error {
 	return a.print(map[string]any{"site": s, "sitemap": feed, "submitted": true})
 }
 
-// sitemapRows keeps the API objects for JSON/YAML and a focused table.
 type sitemapRows []map[string]any
 
 func sitemapList(m []map[string]any) sitemapRows { return sitemapRows(m) }

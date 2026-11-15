@@ -12,8 +12,6 @@ import (
 	"time"
 )
 
-// consent mimics a provider: the auth URL carries redirect_uri and state, and
-// the fake browser follows it with the given callback parameters.
 func consent(redirectURI, state string) string {
 	return "https://provider.example/authorize?" + url.Values{"redirect_uri": {redirectURI}, "state": {state}}.Encode()
 }
@@ -23,7 +21,6 @@ func browser(t *testing.T, params func(state string) url.Values) func(string) er
 		u, _ := url.Parse(authURL)
 		q := u.Query()
 		go func() {
-			// A stray request first: it must not end the login.
 			if res, err := http.Get(q.Get("redirect_uri") + "favicon.ico"); err == nil {
 				res.Body.Close()
 			}
@@ -105,7 +102,6 @@ func TestPasteFlow(t *testing.T) {
 	var log bytes.Buffer
 	var state string
 	o := Options{Log: &log, AuthURL: func(r, s string) string { state = s; return consent(r, s) }}
-	// The pasted URL is built after AuthURL runs, so feed it through a pipe-like reader.
 	pr := &lazyReader{line: func() string { return "http://127.0.0.1:8085/?code=xyz&state=" + url.QueryEscape(state) + "\n" }}
 	o.Paste = pr
 	r, err := Run(context.Background(), o)
@@ -154,7 +150,6 @@ func TestCallbackPage(t *testing.T) {
 		t.Fatalf("missing CSP: %q", csp)
 	}
 
-	// Provider-supplied error text is reflected into the page, so it must be escaped.
 	bad := httptest.NewRecorder()
 	writePage(bad, errors.New(`authorization was denied (<script>alert(1)</script>)`))
 	body := bad.Body.String()

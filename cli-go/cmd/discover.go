@@ -11,9 +11,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Offline discovery for agents: `gsc commands` describes the command tree and
-// `gsc api methods` the API registry. Neither reads config or calls the network.
-
 type flagInfo struct {
 	Name        string `json:"name"`
 	Shorthand   string `json:"shorthand,omitempty"`
@@ -27,10 +24,10 @@ type commandInfo struct {
 	Summary     string     `json:"summary"`
 	Usage       string     `json:"usage"`
 	Aliases     []string   `json:"aliases"`
-	Effect      string     `json:"effect"`        // read, remote_write, or local_write
-	Conditional bool       `json:"conditional"`   // the effect depends on arguments (gsc api, gsc update)
-	Interactive bool       `json:"interactive"`   // may prompt or open a browser
-	Secret      bool       `json:"secret_output"` // prints a credential; agents must not run it
+	Effect      string     `json:"effect"`
+	Conditional bool       `json:"conditional"`
+	Interactive bool       `json:"interactive"`
+	Secret      bool       `json:"secret_output"`
 	APIMethods  []string   `json:"api_methods"`
 	Flags       []flagInfo `json:"flags"`
 	Examples    []string   `json:"examples"`
@@ -60,7 +57,6 @@ func flagList(fs *pflag.FlagSet) []flagInfo {
 	return out
 }
 
-// resolution is what one set of arguments would run, decided by the real parser.
 type resolution struct {
 	Command     string            `json:"command"`
 	Effect      string            `json:"effect"`
@@ -71,14 +67,11 @@ type resolution struct {
 	Args        []string          `json:"args"`
 }
 
-// resolveCmd answers "what would these arguments run?" offline, so a runner can
-// authorise by effect instead of guessing from argument strings.
 func (a *app) resolveCmd() *cobra.Command {
 	return &cobra.Command{Use: "resolve -- <arguments>", Short: "Show the command, effect and flags that arguments would run, without running them",
 		DisableFlagParsing: true,
 		Example:            "  gsc commands resolve -- top queries -s sc-domain:example.com --last 7d\n  gsc commands resolve -- auth -o json token",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Everything after "--" is the command being resolved; the answer is always JSON.
 			for i, arg := range args {
 				if arg == "--" {
 					args = args[i+1:]
@@ -164,12 +157,10 @@ func describe(c *cobra.Command, methods []string) commandInfo {
 	return info
 }
 
-// apiMethods is the registry behind `gsc api methods`, pinned to the vendored
-// discovery snapshot (docs/api-coverage.md).
 type apiMethods []map[string]any
 
 func (m apiMethods) Table() output.Table {
-	brief := func(v any) string { // the query method backs 16 commands
+	brief := func(v any) string {
 		cmds, _ := v.([]string)
 		if len(cmds) > 3 {
 			return fmt.Sprintf("%s and %d more", strings.Join(cmds[:2], ", "), len(cmds)-2)

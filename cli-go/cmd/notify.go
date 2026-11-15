@@ -14,18 +14,14 @@ import (
 	"golang.org/x/term"
 )
 
-// releases is where release checks and downloads go; a.transport replaces the
-// network in tests.
 func (a *app) releases() update.Source { return update.GitHub(a.transport) }
 
-// notifierEnabled reports whether this run may check for a new release. The
-// check is for people at a terminal; scripts, CI, and agents never see it.
 func (a *app) notifierEnabled(cmd *cobra.Command) bool {
 	switch name := cmd.Name(); {
 	case name == "update", name == "version", name == "completion", name == "help", strings.HasPrefix(name, "__complete"):
 		return false
 	}
-	if isGroup(cmd) { // a bare group only prints help or a usage error
+	if isGroup(cmd) {
 		return false
 	}
 	if a.quiet || !update.IsRelease(build.Version) {
@@ -43,9 +39,6 @@ func (a *app) notifierEnabled(cmd *cobra.Command) bool {
 	return ok && term.IsTerminal(int(f.Fd()))
 }
 
-// startUpdateCheck runs in PersistentPreRun. A fresh cache answers at once;
-// otherwise GitHub is queried in the background (at most once a day) while the
-// command runs.
 func (a *app) startUpdateCheck(cmd *cobra.Command) {
 	if !a.notifierEnabled(cmd) {
 		return
@@ -63,7 +56,6 @@ func (a *app) startUpdateCheck(cmd *cobra.Command) {
 	}
 	c.AttemptedAt = now
 	if update.WriteCache(dir, c) != nil {
-		// Without a saved attempt every run would check (and wait) again.
 		return
 	}
 	a.updateCheck = make(chan update.Cache, 1)
@@ -77,15 +69,10 @@ func (a *app) startUpdateCheck(cmd *cobra.Command) {
 	})
 }
 
-// printUpdateNotice runs after the command's output: in PersistentPostRun, or
-// in run after an error message (Cobra skips PersistentPostRun on errors). A
-// cached answer is used at once. If this run started the day's check, it waits
-// up to NoticeWait for the answer: the check is already recorded as attempted,
-// so an answer lost to a fast command would hide the notice for a day.
 func (a *app) printUpdateNotice() {
 	var c update.Cache
 	select {
-	case c = <-a.updateCheck: // a nil channel (no check) never receives
+	case c = <-a.updateCheck:
 	default:
 		if !a.checkStarted {
 			return

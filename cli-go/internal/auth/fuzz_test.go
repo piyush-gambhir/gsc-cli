@@ -10,10 +10,6 @@ import (
 	"unicode/utf8"
 )
 
-// Fuzz targets for the JSON auth parses: ID token claims from Google's token
-// endpoint and OAuth client files. `go test` runs the seeds;
-// `go test -run=^$ -fuzz=FuzzParseIDToken ./internal/auth` explores further.
-
 func FuzzParseIDToken(f *testing.F) {
 	enc := base64.RawURLEncoding
 	f.Add(enc.EncodeToString([]byte(`{"alg":"RS256"}`))+"."+enc.EncodeToString([]byte(`{"email":"me@example.com","sub":"1"}`))+".sig", "me@example.com", "1")
@@ -22,9 +18,8 @@ func FuzzParseIDToken(f *testing.F) {
 	f.Add("a."+enc.EncodeToString([]byte(`{"email":5}`))+".c", "", "")
 	f.Add("a.eyJ9.c", "", "")
 	f.Fuzz(func(t *testing.T, tok, email, sub string) {
-		_, _ = ParseIDToken(tok) // arbitrary input must not panic
+		_, _ = ParseIDToken(tok)
 
-		// A well-formed token round-trips its claims.
 		if !utf8.ValidString(email) || !utf8.ValidString(sub) {
 			return
 		}
@@ -36,9 +31,6 @@ func FuzzParseIDToken(f *testing.F) {
 	})
 }
 
-// FuzzClientFromSecretFile checks the client_secret.json reader: it accepts
-// only an "installed" client with both fields, and its errors never echo the
-// file's contents (which may hold the secret).
 func FuzzClientFromSecretFile(f *testing.F) {
 	f.Add([]byte(`{"installed":{"client_id":"id.apps.googleusercontent.com","client_secret":"GOCSPX-secret"}}`))
 	f.Add([]byte(`{"web":{"client_id":"id","client_secret":"GOCSPX-secret"}}`))

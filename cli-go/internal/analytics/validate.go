@@ -16,9 +16,6 @@ var (
 
 const MaxRowLimit = 25000
 
-// Normalize canonicalizes spellings in place and validates the request
-// against restrictions Google documents. It returns warnings for things that
-// are not errors, such as dates outside data retention.
 func Normalize(req *client.QueryRequest, today Date) ([]string, error) {
 	var warnings []string
 	start, err := ParseDate(req.StartDate)

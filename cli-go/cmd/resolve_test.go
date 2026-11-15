@@ -7,8 +7,6 @@ import (
 	"testing"
 )
 
-// commands resolve uses the real parser, so a flag placed between command words
-// cannot hide the command or its effect from a runner.
 func TestCommandsResolve(t *testing.T) {
 	cases := []struct {
 		args    []string

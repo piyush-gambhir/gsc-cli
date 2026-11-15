@@ -1,4 +1,3 @@
-// Package export writes Search Analytics data one day per file, resumably.
 package export
 
 import (
@@ -24,21 +23,14 @@ import (
 const manifestName = "manifest.json"
 
 type Options struct {
-	Site   string
-	Base   client.QueryRequest // dimensions, type, filters, data state, aggregation
-	Range  analytics.Range
-	Format string // csv or ndjson
-	OutDir string
-	// Retry is the number of retries for quota and 5xx errors (default 0).
-	Retry int
-	// MinInterval is the minimum time between the start of one day (or retry)
-	// and the next, to stay under per-site QPM limits; a day's pages are
-	// fetched back to back.
-	MinInterval time.Duration
-	// Restart discards a manifest written for a different request.
-	Restart bool
-	// FinalThrough is the latest date with final data. Later days (including
-	// empty and future ones) are recorded as preliminary and re-fetched on resume.
+	Site         string
+	Base         client.QueryRequest
+	Range        analytics.Range
+	Format       string
+	OutDir       string
+	Retry        int
+	MinInterval  time.Duration
+	Restart      bool
 	FinalThrough analytics.Date
 	Log          io.Writer
 	Sleep        func(context.Context, time.Duration) error
@@ -73,9 +65,6 @@ type Summary struct {
 	IncompleteDays  []string `json:"days_with_pagination_cut"`
 }
 
-// requestFor is the per-day request. A "date" dimension is added first (it is
-// a no-op for a single day) so every row carries its date and Google returns
-// incompleteness metadata for preliminary data.
 func requestFor(base client.QueryRequest, day string) client.QueryRequest {
 	req := base
 	req.Dimensions = slices.Clone(base.Dimensions)
@@ -131,8 +120,6 @@ func Run(ctx context.Context, q analytics.Querier, o Options) (*Summary, error) 
 	for d := o.Range.Start; !d.After(o.Range.End); d = d.AddDays(1) {
 		day := d.String()
 		sum.Days++
-		// Skip days already recorded as final, unless they are newer than the latest
-		// final date (a record written before that date was known is re-checked).
 		if rec, ok := m.Days[day]; ok && !rec.Preliminary && (o.FinalThrough.IsZero() || !d.After(o.FinalThrough)) {
 			sum.Skipped++
 			continue
@@ -186,8 +173,6 @@ func Run(ctx context.Context, q analytics.Querier, o Options) (*Summary, error) 
 	return sum, nil
 }
 
-// preliminary reports whether a day's data can still change: it is after the
-// latest final date, or the response marks it (or one of its hours) incomplete.
 func preliminary(d analytics.Date, dataState string, res *analytics.Result, finalThrough analytics.Date) bool {
 	if !finalThrough.IsZero() && d.After(finalThrough) {
 		return true
@@ -199,8 +184,6 @@ func preliminary(d analytics.Date, dataState string, res *analytics.Result, fina
 	if res.FirstIncompleteDate != "" && day >= res.FirstIncompleteDate {
 		return true
 	}
-	// Hour markers carry a Pacific offset (2026-10-02T13:00:00-07:00), so the
-	// first ten characters are the Pacific calendar date.
 	return len(res.FirstIncompleteHour) >= 10 && day >= res.FirstIncompleteHour[:10]
 }
 
@@ -226,8 +209,6 @@ func sleep(ctx context.Context, d time.Duration) error {
 	}
 }
 
-// writeDay writes a day's rows to a temp file and renames it into place, so
-// an interrupted day never leaves partial output.
 func writeDay(path, format string, res *analytics.Result) error {
 	f, err := os.CreateTemp(filepath.Dir(path), ".export-*")
 	if err != nil {

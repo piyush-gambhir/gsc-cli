@@ -29,7 +29,6 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// now is 2026-10-03 12:00 in Los Angeles.
 var now = time.Date(2026, 10, 3, 19, 0, 0, 0, time.UTC)
 
 func isolate(t *testing.T) {
@@ -46,7 +45,6 @@ type call struct {
 	Body         []byte
 }
 
-// fakeGoogle answers token, revoke, and Search Console requests in memory.
 type fakeGoogle struct {
 	t           *testing.T
 	mu          sync.Mutex
@@ -146,7 +144,6 @@ func (f *fakeGoogle) RoundTrip(r *http.Request) (*http.Response, error) {
 			} else {
 				resp = defaultQuery(req)
 			}
-			// Like the real API, an offset past the end returns no rows.
 			if req.StartRow >= len(resp.Rows) {
 				resp.Rows = nil
 			} else if req.StartRow > 0 {
@@ -177,7 +174,6 @@ func (f *fakeGoogle) RoundTrip(r *http.Request) (*http.Response, error) {
 	return nil, fmt.Errorf("unexpected host %s", r.URL.Host)
 }
 
-// defaultQuery returns one row per day for date probes and two rows otherwise.
 func defaultQuery(req client.QueryRequest) client.QueryResponse {
 	if len(req.Dimensions) == 1 && req.Dimensions[0] == "date" {
 		var rows []client.Row
@@ -340,7 +336,6 @@ func TestLoginRefusesWithoutInteractionOrClient(t *testing.T) {
 	}
 }
 
-// expire marks the default profile's stored access token as expired.
 func expire(t *testing.T, backend secrets.Backend) {
 	t.Helper()
 	store, err := (&app{}).store()
@@ -361,7 +356,6 @@ func lastBody(t *testing.T, f *fakeGoogle, suffix string) client.QueryRequest {
 	return findBody(t, f, suffix, true)
 }
 
-// firstBody returns the first request to suffix (page one of a paged query).
 func firstBody(t *testing.T, f *fakeGoogle, suffix string) client.QueryRequest {
 	return findBody(t, f, suffix, false)
 }
@@ -587,7 +581,6 @@ func TestExportCommand(t *testing.T) {
 	}
 }
 
-// testService is the keychain service the CLI uses for the test's config path.
 func testService(t *testing.T) string {
 	t.Helper()
 	st, err := (&app{}).store()

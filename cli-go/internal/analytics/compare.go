@@ -9,9 +9,6 @@ import (
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/output"
 )
 
-// Comparison joins two periods on their dimension keys. A key missing from
-// one period is unobserved, not zero: truncated or privacy-filtered results
-// can omit rows that exist.
 type Comparison struct {
 	Mode     string
 	Current  *Result
@@ -45,7 +42,6 @@ func Compare(mode string, cur, prev *Result) *Comparison {
 
 func joinKeys(k []string) string { return strings.Join(k, "\x1f") }
 
-// CompareColumns are the metric columns after the dimension columns.
 var CompareColumns = []string{
 	"clicks", "clicks_prev", "clicks_delta", "clicks_pct",
 	"impressions", "impressions_prev", "impressions_delta", "impressions_pct",
@@ -53,7 +49,6 @@ var CompareColumns = []string{
 	"position", "position_prev", "position_delta",
 }
 
-// Values returns the metric values for CompareColumns; nil means unknown.
 func (p Pair) Values() []any {
 	var cur, prev [4]*float64
 	if p.Cur != nil {
@@ -113,7 +108,6 @@ func (c *Comparison) MarshalJSON() ([]byte, error) {
 
 func (c *Comparison) Table() output.Table {
 	dims := c.Current.Request.Dimensions
-	// Terminal tables show current values and changes; CSV, JSON, and YAML keep the previous values too.
 	t := output.Table{Columns: append(slices.Clone(dims), CompareColumns...), Human: MetricFormats,
 		HumanColumns: append(slices.Clone(dims), "clicks", "clicks_delta", "clicks_pct", "impressions", "impressions_delta",
 			"ctr", "ctr_delta_pp", "position", "position_delta")}
