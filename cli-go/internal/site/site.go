@@ -1,4 +1,3 @@
-// Package site resolves user input to a Search Console property identifier.
 package site
 
 import (
@@ -11,16 +10,10 @@ import (
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/client"
 )
 
-// Exact reports whether s is already a property identifier that must be used
-// verbatim: a domain property or a URL-prefix property.
 func Exact(s string) bool {
 	return strings.HasPrefix(s, "sc-domain:") || strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
 }
 
-// Resolve maps a bare host such as example.com to the caller's property:
-// the domain property for the host (or its parent when the host starts with
-// www.) wins; otherwise exactly one URL-prefix property on that host.
-// Exact identifiers are returned unchanged without any request.
 func Resolve(ctx context.Context, input string, list func(context.Context) ([]client.SiteEntry, error)) (string, error) {
 	input = strings.TrimSpace(input)
 	if input == "" {
@@ -66,8 +59,6 @@ func Resolve(ctx context.Context, input string, list func(context.Context) ([]cl
 	}
 }
 
-// PreferredDefault picks the default site after login: the only property,
-// else the first domain property, else the first property.
 func PreferredDefault(sites []client.SiteEntry) string {
 	if len(sites) == 0 {
 		return ""

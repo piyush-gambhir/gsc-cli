@@ -11,5 +11,4 @@
 !.env.example
 *.test
 
-# Local bundle graph exports
 /.bundle-analysis/

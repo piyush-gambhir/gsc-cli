@@ -101,7 +101,6 @@ func TestKeychainTimeout(t *testing.T) {
 	if err := s.keychain(block); err == nil || !strings.Contains(err.Error(), "did not respond") {
 		t.Fatalf("timeout: %v", err)
 	}
-	// The hung call still holds the keychain lock; once it returns, later calls work.
 	close(release)
 	s.Timeout = time.Second
 	saved, err := s.Save(context.Background(), "k", "v", Keychain, false)
@@ -130,7 +129,6 @@ func TestQueuedKeychainCallsDoNotRunAfterTimeout(t *testing.T) {
 	s := newStore(t)
 	s.Timeout = 50 * time.Millisecond
 	release := make(chan struct{})
-	// Hold the keychain with a slow call, then queue a second one that times out.
 	go func() { _ = s.keychain(func() error { <-release; return nil }) }()
 	time.Sleep(10 * time.Millisecond)
 	ran := make(chan struct{}, 1)

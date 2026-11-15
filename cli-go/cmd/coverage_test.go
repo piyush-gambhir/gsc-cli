@@ -57,9 +57,6 @@ func runnable(root *cobra.Command) map[string]bool {
 	return out
 }
 
-// TestAPICoverage fails if any method in the vendored discovery snapshots is
-// neither implemented by a runnable command nor skipped with a reason, or if
-// docs/api-coverage.md does not list it.
 func TestAPICoverage(t *testing.T) {
 	snapshot := map[string][2]string{}
 	for _, s := range coverage.Snapshots {

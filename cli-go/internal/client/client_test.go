@@ -139,8 +139,6 @@ func TestWritesAcceptEmptyBodies(t *testing.T) {
 	}
 }
 
-// Transport failures keep their cause for errors.Is/As (timeouts versus network
-// errors) while the message stays free of the token.
 func TestTransportErrorKeepsCause(t *testing.T) {
 	c := newTest(func(*http.Request) (*http.Response, error) { return nil, context.DeadlineExceeded })
 	_, err := c.Do(context.Background(), http.MethodGet, "/webmasters/v3/sites?access_token=tok-123", nil, nil)

@@ -1,15 +1,9 @@
-// Package coverage maps every method in the pinned API snapshots to the
-// commands that call it, or records why it is skipped. Tests check this table
-// against the vendored discovery documents, the command tree, and
-// docs/api-coverage.md, so none of them can drift.
 package coverage
 
-// Snapshot is a vendored discovery document in testdata/.
 type Snapshot struct {
 	File, API, Revision, SHA256, Source string
 }
 
-// Captured is when the snapshots were downloaded.
 const Captured = "2026-10-03"
 
 var Snapshots = []Snapshot{

@@ -7,10 +7,6 @@ import (
 	"unicode"
 )
 
-// FuzzCheckCallback checks the loopback callback and pasted-URL parser: a code
-// is returned only for the expected state, and provider-supplied error text
-// reaches the terminal without control characters and bounded in length.
-// `go test -run=^$ -fuzz=FuzzCheckCallback ./internal/oauthflow` explores further.
 func FuzzCheckCallback(f *testing.F) {
 	f.Add("code=c1&state=s1", "s1", false)
 	f.Add("code=c1", "s1", true)

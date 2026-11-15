@@ -11,9 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TestAgentSafetyCommandManifest makes every runnable command part of a
-// reviewed safety contract. Adding, removing, or reclassifying a command
-// requires an intentional manifest-hash update.
 func TestAgentSafetyCommandManifest(t *testing.T) {
 	writeVerbs := map[string]bool{"add": true, "remove": true, "delete": true, "submit": true, "login": true, "logout": true, "use": true, "use-profile": true, "update": true}
 	var entries []string

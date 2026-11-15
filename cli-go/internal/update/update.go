@@ -1,5 +1,3 @@
-// Package update finds, verifies, and installs gsc releases from GitHub, and
-// keeps the once-a-day release check cache used by the update notice.
 package update
 
 import (
@@ -25,19 +23,11 @@ import (
 )
 
 const (
-	Repo = "piyush-gambhir/gsc-cli"
-	// SourceUpdate is how a build in a Go bin directory is updated. gsc has no
-	// `go install` path (the main package is the cli-go module root, so go
-	// install would name the binary cli-go); the documented source install is
-	// `make install` into $GOBIN or $(go env GOPATH)/bin.
+	Repo         = "piyush-gambhir/gsc-cli"
 	SourceUpdate = "git pull && make install (in your gsc-cli checkout)"
-	// MethodSelf and MethodGo are the install methods: gsc replaces itself, or
-	// it lives in a Go bin directory and is rebuilt from source.
-	MethodSelf = "self"
-	MethodGo   = "go"
+	MethodSelf   = "self"
+	MethodGo     = "go"
 
-	// LatestTimeout bounds the latest-release lookup; the background check
-	// cancels sooner (CheckTimeout).
 	LatestTimeout = 15 * time.Second
 
 	maxBinary = 64 << 20
@@ -50,22 +40,17 @@ type Release struct {
 	URL string
 }
 
-// Version is the tag without its leading v.
 func (r *Release) Version() string { return strings.TrimPrefix(r.Tag, "v") }
 
-// ReleaseURL is the release notes page for version (with or without a leading v).
 func ReleaseURL(version string) string {
 	return "https://github.com/" + Repo + "/releases/tag/v" + strings.TrimPrefix(version, "v")
 }
 
-// Source is where releases are looked up and downloaded. Tests point it at a
-// local server.
 type Source struct {
-	Download  string // GitHub base URL for release pages and assets
+	Download  string
 	Transport http.RoundTripper
 }
 
-// GitHub is the real release source; a nil transport uses the default.
 func GitHub(t http.RoundTripper) Source {
 	return Source{Download: "https://github.com", Transport: t}
 }
@@ -103,10 +88,6 @@ func (s Source) get(ctx context.Context, url string, limit int64) ([]byte, error
 	return b, nil
 }
 
-// Latest returns the latest published (non-prerelease) release. It reads the
-// tag from the redirect of github.com/<repo>/releases/latest instead of the
-// GitHub API, whose unauthenticated limit (60 requests an hour per IP) fails
-// behind shared NAT, CI runners, and VPNs. The redirect is never followed.
 func (s Source) Latest(ctx context.Context) (*Release, error) {
 	r, err := s.latest(ctx)
 	if err != nil {
@@ -153,7 +134,6 @@ func (s Source) latest(ctx context.Context) (*Release, error) {
 	return &Release{Tag: tag, URL: ReleaseURL(tag)}, nil
 }
 
-// AssetName is the GoReleaser archive for a platform (cli-go/.goreleaser.yaml).
 func AssetName(goos, goarch string) string {
 	ext := ".tar.gz"
 	if goos == "windows" {
@@ -162,7 +142,6 @@ func AssetName(goos, goarch string) string {
 	return "gsc-cli_" + goos + "_" + goarch + ext
 }
 
-// BinaryName is the executable inside the archive.
 func BinaryName(goos string) string {
 	if goos == "windows" {
 		return "gsc.exe"
@@ -170,8 +149,6 @@ func BinaryName(goos string) string {
 	return "gsc"
 }
 
-// Fetch downloads the release archive for a platform, verifies it against
-// checksums.txt, and returns the extracted gsc binary.
 func (s Source) Fetch(ctx context.Context, r *Release, goos, goarch string) ([]byte, error) {
 	if !strings.HasPrefix(r.Tag, "v") || !IsRelease(r.Tag) {
 		return nil, fmt.Errorf("invalid release version %q", r.Tag)
@@ -192,8 +169,6 @@ func (s Source) Fetch(ctx context.Context, r *Release, goos, goarch string) ([]b
 	return ExtractBinary(archive, goos)
 }
 
-// VerifyChecksum refuses an archive whose SHA-256 does not match its single
-// entry in checksums.txt.
 func VerifyChecksum(archive []byte, checksums []byte, name string) error {
 	wanted := ""
 	for _, line := range strings.Split(string(checksums), "\n") {
@@ -212,9 +187,6 @@ func VerifyChecksum(archive []byte, checksums []byte, name string) error {
 	return nil
 }
 
-// ExtractBinary returns the gsc executable from a release archive (tar.gz, or
-// zip on Windows). Only a top-level regular file with the exact binary name is
-// accepted; nothing is written to disk, so archive paths are never used.
 func ExtractBinary(archive []byte, goos string) ([]byte, error) {
 	name := BinaryName(goos)
 	if goos == "windows" {
@@ -274,8 +246,6 @@ func extractZip(archive []byte, name string) ([]byte, error) {
 	return nil, fmt.Errorf("release does not contain the %s binary", name)
 }
 
-// CheckWritable fails with advice when the executable's directory cannot hold
-// the replacement, before anything is downloaded.
 func CheckWritable(exe, goos string) error {
 	dir := filepath.Dir(exe)
 	f, err := os.CreateTemp(dir, ".gsc-update-*")
@@ -298,13 +268,8 @@ func notWritable(dir, goos string, err error) error {
 	return fmt.Errorf("cannot update gsc: %s is not writable (%v). Re-run with sudo, or reinstall into a directory you own with the install script (installs to ~/.local/bin): curl -fsSL https://raw.githubusercontent.com/%s/main/install.sh | sh; the installed gsc is unchanged", dir, err, Repo)
 }
 
-// rename is os.Rename; tests make it fail to exercise the Windows rollback.
 var rename = os.Rename
 
-// Replace swaps the executable at exe for bin. The new file is written next to
-// exe first, so a failure leaves the old binary in place. On Windows a running
-// executable cannot be overwritten or deleted but can be renamed, so it moves
-// aside to exe.old (removed on a later start by RemoveLeftover).
 func Replace(exe string, bin []byte, goos string) error {
 	dir := filepath.Dir(exe)
 	f, err := os.CreateTemp(dir, ".gsc-update-*")
@@ -312,7 +277,7 @@ func Replace(exe string, bin []byte, goos string) error {
 		return notWritable(dir, goos, err)
 	}
 	tmp := f.Name()
-	defer os.Remove(tmp) // a no-op once the rename succeeds
+	defer os.Remove(tmp)
 	if _, err := f.Write(bin); err != nil {
 		f.Close()
 		return err
@@ -332,7 +297,7 @@ func Replace(exe string, bin []byte, goos string) error {
 		return rename(tmp, exe)
 	}
 	old := exe + ".old"
-	_ = os.Remove(old) // left by an earlier update
+	_ = os.Remove(old)
 	if err := rename(exe, old); err != nil {
 		return fmt.Errorf("moving the running gsc aside: %w", err)
 	}
@@ -345,14 +310,10 @@ func Replace(exe string, bin []byte, goos string) error {
 	return nil
 }
 
-// RemoveLeftover deletes the exe.old a Windows update leaves behind,
-// best-effort (it fails while that old process is still running).
 func RemoveLeftover(exe string) {
 	_ = os.Remove(exe + ".old")
 }
 
-// Method reports how gsc at exe is updated: MethodGo when it lives in a Go bin
-// directory ($GOBIN, $GOPATH/bin, or ~/go/bin), otherwise MethodSelf.
 func Method(exe string, getenv func(string) string, home string) string {
 	dir := filepath.Clean(filepath.Dir(exe))
 	var candidates []string
@@ -388,7 +349,6 @@ func samePath(a, b string) bool {
 	return a == b
 }
 
-// UpdateCommand is the command the notice and `gsc update` suggest.
 func UpdateCommand(method string) string {
 	if method == MethodGo {
 		return SourceUpdate
@@ -396,12 +356,8 @@ func UpdateCommand(method string) string {
 	return "gsc update"
 }
 
-// IsRelease reports whether v is a release version (semver, optional v
-// prefix); "dev" and other local builds are not.
 func IsRelease(v string) bool { return versionPattern.MatchString(v) }
 
-// Newer reports whether latest is a higher version than current. It is false
-// when either is not a release version.
 func Newer(latest, current string) bool {
 	l, lpre, ok1 := parse(latest)
 	c, cpre, ok2 := parse(current)
@@ -413,7 +369,6 @@ func Newer(latest, current string) bool {
 			return l[i] > c[i]
 		}
 	}
-	// A release outranks its pre-releases (1.0.0 > 1.0.0-rc.1).
 	return lpre == "" && cpre != ""
 }
 

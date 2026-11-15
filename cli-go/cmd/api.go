@@ -12,10 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// readOnlyPOST lists POST paths that only read data.
 var readOnlyPOST = []string{"/searchAnalytics/query", "/v1/urlInspection/index:inspect"}
 
-// apiIsRead classifies a raw request by effect, not HTTP method.
 func apiIsRead(method, path string) bool {
 	if method == http.MethodGet {
 		return true
@@ -82,8 +80,6 @@ func (a *app) api() *cobra.Command {
 				}
 				return a.dryRunPlan(method, path, shown)
 			}
-			// A raw write can delete properties or sitemaps, so it confirms like the
-			// typed destructive commands (or needs --yes).
 			if !read {
 				if err := a.confirm(fmt.Sprintf("gsc api %s %s changes Search Console data.", method, client.SafeURL(client.DefaultBase+path))); err != nil {
 					return err

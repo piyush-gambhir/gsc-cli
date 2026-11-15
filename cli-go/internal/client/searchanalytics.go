@@ -6,7 +6,6 @@ import (
 	"net/http"
 )
 
-// QueryRequest is the complete searchanalytics.query request body.
 type QueryRequest struct {
 	StartDate             string        `json:"startDate"`
 	EndDate               string        `json:"endDate"`
@@ -44,9 +43,6 @@ type QueryResponse struct {
 	Metadata                *Metadata `json:"metadata,omitempty"`
 }
 
-// Metadata marks where preliminary data starts. Google's method reference
-// spells the fields in snake_case while discovery and the Go client use
-// camelCase, so both are accepted.
 type Metadata struct {
 	FirstIncompleteDate string `json:"firstIncompleteDate,omitempty"`
 	FirstIncompleteHour string `json:"firstIncompleteHour,omitempty"`
@@ -70,7 +66,6 @@ func (m *Metadata) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Query runs one searchanalytics.query request (one page).
 func (c *Client) Query(ctx context.Context, site string, req QueryRequest) (*QueryResponse, error) {
 	var out QueryResponse
 	if err := c.getJSON(ctx, http.MethodPost, sitePath(site)+"/searchAnalytics/query", nil, req, &out); err != nil {
@@ -79,7 +74,6 @@ func (c *Client) Query(ctx context.Context, site string, req QueryRequest) (*Que
 	return &out, nil
 }
 
-// QueryRaw runs one request and returns the response body unchanged.
 func (c *Client) QueryRaw(ctx context.Context, site string, req QueryRequest) ([]byte, error) {
 	return c.Do(ctx, http.MethodPost, sitePath(site)+"/searchAnalytics/query", nil, req)
 }

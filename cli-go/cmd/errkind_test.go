@@ -32,7 +32,6 @@ func TestErrorKind(t *testing.T) {
 	}
 }
 
-// The kind reaches the structured error for failures raised before and after flag parsing.
 func TestErrorKindInOutput(t *testing.T) {
 	isolate(t)
 	f := newFake(t)
@@ -75,7 +74,6 @@ func TestErrorKindInOutput(t *testing.T) {
 	}
 }
 
-// Google's legacy quota failures arrive as HTTP 403; they are rate limits, not permission problems.
 func TestQuota403IsRateLimit(t *testing.T) {
 	if got := errorKind(&client.APIError{Status: 403, Reason: "userRateLimitExceeded"}); got != "rate_limit" {
 		t.Fatalf("got %s", got)
@@ -85,7 +83,6 @@ func TestQuota403IsRateLimit(t *testing.T) {
 	}
 }
 
-// Errors raised in command bodies carry their kind too.
 func TestErrorKindFromCommandBodies(t *testing.T) {
 	isolate(t)
 	t.Setenv("GSC_ACCESS_TOKEN", "env-token")
@@ -106,8 +103,6 @@ func TestErrorKindFromCommandBodies(t *testing.T) {
 	}
 }
 
-// Bad input to query-family and other commands is a usage error (the cases
-// from the v0.1.5 live test).
 func TestInputErrorsAreUsage(t *testing.T) {
 	isolate(t)
 	t.Setenv("GSC_ACCESS_TOKEN", "env-token")

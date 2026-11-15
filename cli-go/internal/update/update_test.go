@@ -118,7 +118,6 @@ func TestExtractRefusesTraversalAndNonRegularEntries(t *testing.T) {
 	}
 }
 
-// releaseServer serves a release: latest tag, checksums.txt, and one archive.
 func releaseServer(t *testing.T, tag, asset string, archive []byte, checksums string) Source {
 	t.Helper()
 	mux := http.NewServeMux()
@@ -170,9 +169,6 @@ func TestFetchVerifiesTheReleaseBeforeExtracting(t *testing.T) {
 	}
 }
 
-// TestLatestReadsTheRedirect covers the github.com/<repo>/releases/latest
-// lookup: only a 302 to this repo's semver release tag is accepted, and the
-// redirect is never followed.
 func TestLatestReadsTheRedirect(t *testing.T) {
 	followed := 0
 	other := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { followed++ }))
@@ -268,7 +264,7 @@ func TestReplaceUnix(t *testing.T) {
 func TestReplaceWindowsRenamesTheRunningExeAside(t *testing.T) {
 	dir := t.TempDir()
 	exe := writeExe(t, dir, "gsc.exe", "old")
-	writeExe(t, dir, "gsc.exe.old", "older") // left by an earlier update
+	writeExe(t, dir, "gsc.exe.old", "older")
 	if err := Replace(exe, []byte("new"), "windows"); err != nil {
 		t.Fatal(err)
 	}

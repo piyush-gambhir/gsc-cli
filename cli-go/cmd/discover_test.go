@@ -5,8 +5,6 @@ import (
 	"testing"
 )
 
-// gsc commands describes every runnable command offline, with effects that match
-// the safety annotations, and never reads config or calls the network.
 func TestCommandsDescribesTree(t *testing.T) {
 	isolate(t)
 	f := newFake(t)
@@ -32,7 +30,6 @@ func TestCommandsDescribesTree(t *testing.T) {
 	}
 }
 
-// gsc api methods lists the pinned registry, with read effects for the read-only POSTs.
 func TestAPIMethods(t *testing.T) {
 	isolate(t)
 	f := newFake(t)

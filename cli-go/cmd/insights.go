@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// insightFetchLimit bounds rows fetched for local analysis.
 const insightFetchLimit = 25000
 
 func (a *app) insights() *cobra.Command {

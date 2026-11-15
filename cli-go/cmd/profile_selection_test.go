@@ -9,8 +9,6 @@ import (
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/config"
 )
 
-// TestLoginProfileSelection pins docs/auth.md: login without --profile saves to
-// GSC_PROFILE, then the current profile, and only then "default".
 func TestLoginProfileSelection(t *testing.T) {
 	key := serviceAccountKey(t)
 	for _, tc := range []struct {

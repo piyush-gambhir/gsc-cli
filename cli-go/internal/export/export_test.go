@@ -31,7 +31,6 @@ func (q *dayQuerier) Query(_ context.Context, _ string, req client.QueryRequest)
 		return nil, &client.APIError{Status: 429, Message: "Quota exceeded", Reason: "rateLimitExceeded"}
 	}
 	resp := &client.QueryResponse{}
-	// One row per day; like the real API, an offset past it returns nothing.
 	if req.StartRow == 0 && !q.empty {
 		resp.Rows = []client.Row{{Keys: []string{req.StartDate, "=cmd"}, Clicks: 1, Impressions: 2, CTR: 0.5, Position: 3}}
 	}
@@ -67,7 +66,6 @@ func TestExportResumeAndAtomicDays(t *testing.T) {
 	}
 	q.requests = nil
 	sum, err = Run(context.Background(), q, opts)
-	// Two days, each a data page plus the empty page that proves its end.
 	if err != nil || sum.Skipped != 1 || sum.Written != 2 || len(q.requests) != 4 {
 		t.Fatalf("resume: %+v %v requests=%d", sum, err, len(q.requests))
 	}
@@ -120,7 +118,6 @@ func TestExportRetryAndPreliminaryDays(t *testing.T) {
 }
 
 func TestExportFinalityUsesHourMarkerAndFinalDate(t *testing.T) {
-	// Hourly export: only the hour marker says which days are still changing.
 	dir := t.TempDir()
 	q := &dayQuerier{incompleteHour: "2026-09-30T13:00:00-07:00"}
 	opts := Options{Site: "s", Base: client.QueryRequest{Dimensions: []string{"hour"}, DataState: "hourly_all"}, Range: rng("2026-09-29", "2026-09-30"),
@@ -129,7 +126,6 @@ func TestExportFinalityUsesHourMarkerAndFinalDate(t *testing.T) {
 	if err != nil || len(sum.PreliminaryDays) != 1 || sum.PreliminaryDays[0] != "2026-09-30" {
 		t.Fatalf("hour marker ignored: %+v %v", sum, err)
 	}
-	// Final data state: days after the latest final date stay pending even when empty.
 	dir = t.TempDir()
 	final, _ := analytics.ParseDate("2026-09-29")
 	q = &dayQuerier{empty: true}

@@ -48,14 +48,12 @@ func (a *app) export() *cobra.Command {
 			}
 			start, _ := analytics.ParseDate(sp.req.StartDate)
 			end, _ := analytics.ParseDate(sp.req.EndDate)
-			// One small probe: days after the latest final date stay pending, so an
-			// empty day whose data has not arrived is re-fetched on resume.
 			finalThrough, _, err := a.latestDate(ctx, cl, site, sp.req, "final")
 			if err != nil {
 				return err
 			}
 			if finalThrough.IsZero() {
-				finalThrough = a.today().AddDays(-11) // no final data in the probe window
+				finalThrough = a.today().AddDays(-11)
 			}
 			sum, err := export.Run(ctx, cl, export.Options{Site: site, Base: sp.req, Range: analytics.Range{Start: start, End: end},
 				Format: format, OutDir: out, Retry: retry, MinInterval: interval, Restart: restart, FinalThrough: finalThrough,
@@ -79,7 +77,6 @@ func (a *app) export() *cobra.Command {
 
 func (a *app) progressLog() *quietWriter { return &quietWriter{a: a} }
 
-// quietWriter sends progress lines to stderr unless --quiet.
 type quietWriter struct{ a *app }
 
 func (w *quietWriter) Write(p []byte) (int, error) {

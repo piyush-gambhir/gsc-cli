@@ -16,9 +16,6 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-// ServiceAccount builds a token source from a service account JSON key file.
-// subject, when set, impersonates a Workspace user through domain-wide
-// delegation.
 func (p *Provider) ServiceAccount(ctx context.Context, keyFile, subject string, scopes []string) (TokenSource, string, error) {
 	b, err := os.ReadFile(keyFile)
 	if err != nil {
@@ -32,9 +29,6 @@ func (p *Provider) ServiceAccount(ctx context.Context, keyFile, subject string, 
 	return TokenSource{oauth2.ReuseTokenSource(nil, cfg.TokenSource(p.ctx(ctx)))}, cfg.Email, nil
 }
 
-// allowedCredentialTypes are the Google credential JSON types accepted from
-// --credentials / GSC_CREDENTIALS. The type is passed explicitly, as Google
-// requires for safe loading of credential configurations.
 var allowedCredentialTypes = map[string]google.CredentialsType{
 	"service_account":                  google.ServiceAccount,
 	"authorized_user":                  google.AuthorizedUser,
@@ -43,7 +37,6 @@ var allowedCredentialTypes = map[string]google.CredentialsType{
 	"impersonated_service_account":     google.ImpersonatedServiceAccount,
 }
 
-// CredentialsFile loads any supported Google credential JSON file.
 func (p *Provider) CredentialsFile(ctx context.Context, path string, scopes []string) (TokenSource, string, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -66,8 +59,6 @@ func (p *Provider) CredentialsFile(ctx context.Context, path string, scopes []st
 	return TokenSource{creds.TokenSource}, head.Type, nil
 }
 
-// ADC resolves Application Default Credentials. It is only used when a
-// profile or flag asks for it, never as a silent fallback.
 func (p *Provider) ADC(ctx context.Context, scopes []string) (TokenSource, error) {
 	creds, err := google.FindDefaultCredentials(p.ctx(ctx), scopes...)
 	if err != nil {
@@ -76,8 +67,6 @@ func (p *Provider) ADC(ctx context.Context, scopes []string) (TokenSource, error
 	return TokenSource{creds.TokenSource}, nil
 }
 
-// Impersonate mints short-lived tokens for target through the IAM Credentials
-// API, authenticated by base (normally ADC with the cloud-platform scope).
 func (p *Provider) Impersonate(ctx context.Context, base oauth2.TokenSource, target string, scopes []string) TokenSource {
 	return TokenSource{oauth2.ReuseTokenSource(nil, &impersonator{p: p, ctx: ctx, base: base, target: target, scopes: scopes})}
 }
@@ -132,5 +121,4 @@ func (i *impersonator) Token() (*oauth2.Token, error) {
 	return &oauth2.Token{AccessToken: out.AccessToken, Expiry: out.ExpireTime, TokenType: "Bearer"}, nil
 }
 
-// BaseForImpersonation is the scope a base identity needs to call IAM Credentials.
 func BaseForImpersonation() []string { return []string{scopeCloud} }

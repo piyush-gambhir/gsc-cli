@@ -39,7 +39,6 @@ func idToken(email, sub string) string {
 	return enc.EncodeToString([]byte(`{"alg":"RS256"}`)) + "." + enc.EncodeToString(payload) + ".sig"
 }
 
-// fakeGoogle is a token, revoke, and IAM endpoint with call counting.
 type fakeGoogle struct {
 	*httptest.Server
 	tokenCalls, revokeCalls atomic.Int32
@@ -106,7 +105,6 @@ func (f *fakeGoogle) provider() *Provider {
 		RevokeURL: f.URL + "/revoke", IAMBase: f.URL, HTTP: f.Client()}
 }
 
-// browser follows the consent URL straight to the loopback redirect.
 func browser(t *testing.T) func(string) error {
 	return func(u string) error {
 		p, _ := url.Parse(u)
@@ -243,7 +241,6 @@ func TestSessionGuards(t *testing.T) {
 		t.Fatalf("invalid_grant: %v", err)
 	}
 	f.refreshStatus = 200
-	// A newer login replaced the profile while this session refreshed: nothing is written.
 	_ = config.Update(context.Background(), e.path, func(c *config.Config) error {
 		q := c.Profiles["default"]
 		q.Generation = "g2"
@@ -369,7 +366,6 @@ func TestImpersonateAndRevoke(t *testing.T) {
 func TestSessionRejectsTokenFromAnotherLogin(t *testing.T) {
 	f := newFake(t)
 	p := config.Profile{Auth: config.AuthOAuth, Client: config.ClientBuiltin, ClientID: "cid", Generation: "g1"}
-	// The stored blob belongs to a newer login (g2) than the profile this command loaded (g1).
 	e := newEnv(t, p, Blob{RefreshToken: "rt-b", AccessToken: "access-b", Expiry: time.Now().Add(time.Hour), Generation: "g2"})
 	withBuiltin(t, "cid", "secret")
 	s := &Session{Provider: f.provider(), Store: e.store, ConfigPath: e.path, ProfileName: "default", Profile: p}

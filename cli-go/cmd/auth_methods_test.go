@@ -68,8 +68,6 @@ func TestServiceAccountADCAndCredentialsFile(t *testing.T) {
 	}
 }
 
-// pasteReader answers the paste prompt with the redirect URL for the state
-// printed on stderr, like a user copying it from the browser.
 type pasteReader struct {
 	errOut *bytes.Buffer
 	r      *strings.Reader
