@@ -34,7 +34,6 @@ type app struct {
 	in                                              io.Reader
 	out, errOut                                     io.Writer
 
-	// Test seams.
 	transport   http.RoundTripper
 	provider    func(*http.Client) *auth.Provider
 	apiBase     string
@@ -42,28 +41,22 @@ type app struct {
 	now         func() time.Time
 	terminal    func() bool
 	sleep       func(context.Context, time.Duration) error
-	// exePath and stderrTTY replace the running executable's path and stderr
-	// terminal detection.
-	exePath   string
-	stderrTTY func() bool
+	exePath     string
+	stderrTTY   func() bool
 
 	stdin *bufio.Reader
 
-	// updateCheck carries the release check from PersistentPreRun to
-	// PersistentPostRun; checks tracks its background request, and
-	// checkStarted is set when this run sent it.
 	updateCheck  chan update.Cache
 	checks       sync.WaitGroup
 	checkStarted bool
 }
 
-// Annotation keys used by --read-only and the command-safety manifest.
 const (
-	annMutates     = "mutates"       // "true": remote write; "conditional": decided at run time
-	annWritesLocal = "writes-local"  // changes local credentials, config, or the binary
-	annInteractive = "interactive"   // may prompt or open a browser
-	annSecret      = "secret-output" // prints a credential; refused under --read-only
-	annGroup       = "group"         // only groups subcommands; runs just to print help or reject a typo
+	annMutates     = "mutates"
+	annWritesLocal = "writes-local"
+	annInteractive = "interactive"
+	annSecret      = "secret-output"
+	annGroup       = "group"
 )
 
 func envBool(name string) bool { s := os.Getenv(name); return s == "1" || strings.EqualFold(s, "true") }
@@ -91,7 +84,6 @@ func newRoot(a *app) *cobra.Command {
 			if a.timeout <= 0 {
 				return withKind(kindUsage, fmt.Errorf("--timeout must be positive"))
 			}
-			// Safety settings from the environment are sticky: an explicit false flag cannot undo them.
 			if envBool("GSC_READ_ONLY") {
 				a.readOnly = true
 			}
@@ -109,8 +101,6 @@ func newRoot(a *app) *cobra.Command {
 					return withKind(kindReadOnly, fmt.Errorf("%s changes local state and is blocked by --read-only", cmd.CommandPath()))
 				}
 			}
-			// These commands have no preview, so running them would ignore --dry-run
-			// (logout --revoke would revoke at Google). update handles --dry-run itself.
 			if a.dryRun && cmd.Annotations[annWritesLocal] == "true" {
 				return withKind(kindUsage, fmt.Errorf("%s has no --dry-run preview; run it without --dry-run", cmd.CommandPath()))
 			}
@@ -176,9 +166,6 @@ func newRoot(a *app) *cobra.Command {
 	return root
 }
 
-// initHelpFlags registers --help up front (Cobra adds it lazily, after looking
-// up the command, so `gsc --help -o json` read -o as --help's value) and marks
-// flag and argument errors as usage errors.
 func initHelpFlags(c *cobra.Command) {
 	c.InitDefaultHelpFlag()
 	c.SetFlagErrorFunc(func(_ *cobra.Command, err error) error { return withKind(kindUsage, err) })
@@ -190,9 +177,6 @@ func initHelpFlags(c *cobra.Command) {
 	}
 }
 
-// rejectUnknownSubcommands makes command groups (sites, insights, ...) fail on
-// an unknown subcommand. Cobra checks only at the root, so `gsc sites lsit`
-// would otherwise print help and exit 0.
 func isGroup(c *cobra.Command) bool { return c.Annotations[annGroup] == "true" }
 
 func rejectUnknownSubcommands(c *cobra.Command) {
@@ -207,7 +191,7 @@ func rejectUnknownSubcommands(c *cobra.Command) {
 	}
 	c.Annotations[annGroup] = "true"
 	c.Args = cobra.ArbitraryArgs
-	c.SuggestionsMinimumDistance = 2 // Cobra's root default; SuggestionsFor alone uses 0
+	c.SuggestionsMinimumDistance = 2
 	c.RunE = func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return cmd.Help()
@@ -220,8 +204,6 @@ func rejectUnknownSubcommands(c *cobra.Command) {
 	}
 }
 
-// outputFlag finds the last -o/--output value in raw arguments, so errors raised
-// before Cobra parses flags (unknown commands or flags) still honor -o json.
 func outputFlag(args []string) string {
 	f := ""
 	for i := 0; i < len(args); i++ {
@@ -241,10 +223,8 @@ func outputFlag(args []string) string {
 	return f
 }
 
-// Run executes the CLI and returns the process exit code.
 func Run(ctx context.Context, args []string, in io.Reader, out, errOut io.Writer) int {
 	if runtime.GOOS == "windows" {
-		// A Windows self-update leaves the replaced gsc.exe.old behind.
 		if exe, err := os.Executable(); err == nil {
 			if exe, err = filepath.EvalSymlinks(exe); err == nil {
 				update.RemoveLeftover(exe)
@@ -279,8 +259,6 @@ func (a *app) run(ctx context.Context, args []string) int {
 			payload["retry_after"] = apiErr.RetryAfter
 		}
 	}
-	// Only when -o was never parsed: a parsed value is authoritative, and the raw
-	// scan cannot tell -o from another flag's value such as --data -oyaml.
 	if o := root.PersistentFlags().Lookup("output"); o != nil && !o.Changed {
 		if f := outputFlag(args); f == "json" || f == "yaml" {
 			a.format = f
@@ -291,14 +269,11 @@ func (a *app) run(ctx context.Context, args []string) int {
 	} else {
 		fmt.Fprintln(a.errOut, "Error:", message)
 	}
-	// Cobra skips PersistentPostRun when a command fails; collect the day's
-	// release check here so a failing command does not lose it.
 	a.printUpdateNotice()
 	return 1
 }
 
 func (a *app) print(data any) error {
-	// Tables and CSV drop the envelope, so say which data is not final.
 	r, ok := data.(*analytics.Result)
 	if c, isCmp := data.(*analytics.Comparison); isCmp {
 		r, ok = c.Current, true
@@ -308,7 +283,6 @@ func (a *app) print(data any) error {
 		case at != "":
 			a.warn("data from %s on is preliminary and may change; JSON and YAML output label it", at)
 		case r.Request.DataState == "all" || r.Request.DataState == "hourly_all":
-			// Ungrouped totals carry no first-incomplete marker, but may include preliminary days.
 			a.warn("--data-state %s may include preliminary data that can change", r.Request.DataState)
 		}
 	}
@@ -337,8 +311,6 @@ func (a *app) store() (secrets.Store, error) {
 		return secrets.Store{}, err
 	}
 	def, _ := config.DefaultPath()
-	// One keychain namespace per configuration file, so per-environment configs
-	// with the same profile names never overwrite each other's credentials.
 	return secrets.Store{Service: secrets.ServiceFor("gsc-cli", path, def), FilePath: filepath.Join(filepath.Dir(path), "secrets.yaml")}, nil
 }
 
@@ -351,15 +323,13 @@ func (a *app) loadConfig() (*config.Config, string, error) {
 	return c, p, err
 }
 
-// creds describes the credential chosen for a command.
 type creds struct {
 	ts          client.TokenSource
-	source      string // flag, env:GSC_ACCESS_TOKEN, credentials:<type>, profile:<name>
+	source      string
 	profileName string
 	profile     *config.Profile
 }
 
-// scopes requested for non-interactive credentials: read-only scope under --read-only.
 func (a *app) scopes() []string {
 	if a.readOnly {
 		return []string{auth.ScopeReadonly}
@@ -367,8 +337,6 @@ func (a *app) scopes() []string {
 	return []string{auth.ScopeFull}
 }
 
-// profileScopes honors a profile saved with read-only access (for example
-// --scope readonly on a service account), narrowed further by --read-only.
 func (a *app) profileScopes(p config.Profile) []string {
 	if len(p.Scopes) > 0 && !auth.HasWriteScope(p.Scopes) {
 		return []string{auth.ScopeReadonly}
@@ -376,9 +344,6 @@ func (a *app) profileScopes(p config.Profile) []string {
 	return a.scopes()
 }
 
-// resolveCreds applies credential precedence: access token flag/env, then a
-// credentials file flag/env, then the selected profile. There is no implicit
-// fallback to Application Default Credentials.
 func (a *app) resolveCreds(ctx context.Context) (*creds, error) {
 	if a.accessToken != "" {
 		return &creds{ts: auth.Static(strings.TrimSpace(a.accessToken)), source: "flag"}, nil
@@ -455,7 +420,6 @@ func (a *app) newClient(ts client.TokenSource) *client.Client {
 	return c
 }
 
-// connect resolves credentials and returns a client plus the credential details.
 func (a *app) connect(ctx context.Context) (*client.Client, *creds, error) {
 	c, err := a.resolveCreds(ctx)
 	if err != nil {
@@ -464,7 +428,6 @@ func (a *app) connect(ctx context.Context) (*client.Client, *creds, error) {
 	return a.newClient(c.ts), c, nil
 }
 
-// siteInput is --site, else GSC_SITE, else the selected profile's default.
 func (a *app) siteInput() string {
 	if a.site != "" {
 		return a.site
@@ -480,8 +443,6 @@ func (a *app) siteInput() string {
 	return ""
 }
 
-// resolveSite turns the site input into a property identifier; bare hosts
-// trigger one sites.list call.
 func (a *app) resolveSite(ctx context.Context, c *client.Client, explicit string) (string, error) {
 	input := explicit
 	if input == "" {
@@ -490,8 +451,6 @@ func (a *app) resolveSite(ctx context.Context, c *client.Client, explicit string
 	return site.Resolve(ctx, input, c.ListSites)
 }
 
-// requireWriteScope stops writes early when a profile (of any auth type) only holds the
-// read-only scope.
 func requireWriteScope(c *creds) error {
 	if c.profile != nil && len(c.profile.Scopes) > 0 && !auth.HasWriteScope(c.profile.Scopes) {
 		return withKind(kindReadOnly, fmt.Errorf("profile %q has read-only Search Console access; run gsc auth login --profile %s (without --scope readonly) to allow writes", c.profileName, c.profileName))
@@ -514,8 +473,6 @@ func (a *app) reader() *bufio.Reader {
 	return a.stdin
 }
 
-// confirm asks before destructive actions; --yes skips it and --no-input or a
-// non-terminal stdin refuses without it.
 func (a *app) confirm(question string) error {
 	if a.yes {
 		return nil
@@ -531,5 +488,4 @@ func (a *app) confirm(question string) error {
 	return errors.New("cancelled")
 }
 
-// today is the current Search Console (Pacific Time) date.
 func (a *app) today() analytics.Date { return analytics.DateOf(a.now()) }

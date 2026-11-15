@@ -8,12 +8,6 @@ import (
 	"unicode/utf8"
 )
 
-// Fuzz targets for code that parses untrusted responses. `go test` runs the
-// seeds; `go test -run=^$ -fuzz=FuzzDecodeError ./internal/client` explores further.
-
-// FuzzDecodeError checks that any error response becomes an APIError whose
-// message is safe to print: valid UTF-8, no control characters (terminal
-// escapes), and bounded in length.
 func FuzzDecodeError(f *testing.F) {
 	f.Add(403, "", []byte(`{"error":{"code":403,"message":"Quota exceeded.","errors":[{"domain":"global","reason":"quotaExceeded","message":"Quota exceeded."}]}}`))
 	f.Add(429, "30", []byte(`{"error":{"code":429,"message":"Resource has been exhausted","status":"RESOURCE_EXHAUSTED"}}`))

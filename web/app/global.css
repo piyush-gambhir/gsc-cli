@@ -136,10 +136,7 @@
   --radius: 8px;
   --radius-round: 8px;
 
-  /* Light elevation runs out of headroom at white, so the rungs above
-     "raised" tint downward instead of upward. Without this the ladder collapses:
-     band, card, code chip, terminal and nav all resolve to the same white. */
-  --surface-page: var(--color-neutral-200);
+     --surface-page: var(--color-neutral-200);
   --surface-low: var(--color-neutral-300);
   --surface-raised: var(--color-neutral-100);
   --surface-top: var(--color-neutral-300);
@@ -424,8 +421,7 @@ body {
   animation: terminal-caret-blink 0.9s step-end infinite;
 }
 
-/* Floating navigation refinements */
-.nav-underline-slide {
+ .nav-underline-slide {
   position: relative;
 }
 
@@ -484,8 +480,7 @@ body {
   }
 }
 
-/* Batch B: authored OSMO component and marketing-page treatments. */
-.osmo-button {
+ .osmo-button {
   position: relative;
   display: inline-flex;
   height: var(--btn-height);
@@ -809,8 +804,7 @@ body {
   to { transform: translateX(-100%); }
 }
 
-/* OSMO floating shell overrides, traced to globals.css and motion.css. */
-.nav__bg { background: rgb(0 0 0 / 30%); transition: opacity var(--duration-default-half) ease; }
+ .nav__bg { background: rgb(0 0 0 / 30%); transition: opacity var(--duration-default-half) ease; }
 
 .nav-bar__width {
   max-width: 40.5em;
@@ -900,8 +894,7 @@ body {
 .nav-desktop-menu__col a { transition: color var(--duration-default-half) var(--cubic-default); }
 .nav-desktop-menu__col a:hover { color: var(--site-accent); }
 
-/* OSMO footer chapter. */
-.site-footer {
+ .site-footer {
   overflow: hidden;
   border-top: 1px solid var(--border);
   color: var(--foreground);
@@ -1041,9 +1034,7 @@ body {
 @media (max-width: 767px) {
   .osmo-home-hero__title { font-size: 4em; }
   .osmo-section__title { font-size: 3em; }
-  /* minmax(0, …) not 1fr: a bare 1fr keeps min-width:auto, so a nowrap code
-     snippet sets the track's min-content width and blows the page sideways. */
-  .osmo-card-grid--steps,
+     .osmo-card-grid--steps,
   .osmo-card-grid--features { grid-template-columns: minmax(0, 1fr); }
   .osmo-card { min-height: 0; }
 
@@ -1134,8 +1125,7 @@ html[data-lenis] {
   scroll-behavior: auto;
 }
 
-/* Osmo action-button mechanics: layered background and duplicated rolling label. */
-.action-button {
+ .action-button {
   position: relative;
   display: inline-flex;
   height: 2.5em;
@@ -1197,8 +1187,7 @@ html[data-lenis] {
 .action-button:disabled { cursor: not-allowed; opacity: 0.45; }
 .action-button .button-icon { display: inline-flex; flex: none; align-items: center; justify-content: center; }
 
-/* Landing-page capabilities: intentionally dark in both site themes. */
-.capabilities-band {
+ .capabilities-band {
   color: oklch(0.985 0 0);
   background: oklch(0.205 0 0);
   padding-block: 7.5em;
@@ -1303,8 +1292,7 @@ html[data-lenis] {
   }
 }
 
-/* Ported Osmo floating shell. Colors, fonts and content are project-specific. */
-.nav {
+ .nav {
   position: fixed;
   z-index: 100;
   inset: 0;
@@ -1433,9 +1421,7 @@ html[data-lenis] {
 .nav[data-nav-status='active'] .nav-menu__label.is--close { transform: translateY(0); }
 
 .nav-bar__logo {
-  /* In flow (not absolutely centered): the bar is too narrow for the buttons
-     group plus a dead-center logo, and overlap defaces the wordmark. */
-  margin-inline: auto;
+     margin-inline: auto;
   padding-inline: 0.75em;
 }
 
@@ -1552,8 +1538,7 @@ html[data-lenis] {
 .nav-desktop-menu__col a:hover { color: var(--site-accent); }
 
 
-/* Osmo-inspired closing chapter. */
-.site-footer {
+ .site-footer {
   position: relative;
   overflow: hidden;
   color: var(--foreground);
@@ -1865,8 +1850,7 @@ html[data-lenis] {
   }
 }
 
-/* Marketing-shell specificity keeps the Batch B shell above legacy site rules. */
-.marketing-shell .nav__bg {
+ .marketing-shell .nav__bg {
   background: rgb(0 0 0 / 30%);
   transition: opacity 0.4s ease;
 }
@@ -2170,8 +2154,7 @@ html[data-lenis] {
   }
 }
 
-/* Doctrine v2: borderless tonal surfaces with the suite's terminal-native identity. */
-::selection {
+ ::selection {
   color: var(--color-neutral-900);
   background: var(--site-accent);
 }
@@ -2241,8 +2224,7 @@ button:focus-visible {
 }
 
 .osmo-home-hero__cursor {
-  display: inline-block; /* inline ignores width, so the block cursor was 0px wide */
-  width: 0.13em;
+  display: inline-block;    width: 0.13em;
   height: 0.72em;
   margin-left: 0.1em;
   background: var(--site-accent);
@@ -2337,10 +2319,7 @@ button:focus-visible {
   max-width: 35.1875em;
 }
 
-/* No min-height: content sits top (the base margin-top:auto is overridden
-   below), so a fixed height just pools dead space under every card. Grid
-   stretch already equalises heights across a row. */
-.marketing-shell .osmo-card {
+ .marketing-shell .osmo-card {
   min-height: 0;
   padding: 1.75em;
   border: 0;
@@ -2356,11 +2335,7 @@ button:focus-visible {
   background: var(--surface-top);
 }
 
-/* Light reuses --surface-top for both code chips and the features band, so a
-   hovered card would land on exactly the band colour and disappear. There is no
-   tone above white to step to either, so the card holds its fill and lifts
-   instead. Dark has headroom and keeps the shared value. */
-:root:not(.dark) .marketing-shell .osmo-card {
+ :root:not(.dark) .marketing-shell .osmo-card {
   transition:
     background-color var(--duration-default-half) var(--cubic-default),
     box-shadow var(--duration-default-half) var(--cubic-default);
@@ -2572,8 +2547,7 @@ button:focus-visible {
   }
 }
 
-/* Hide-on-scroll navigation: bar slides away scrolling down, returns scrolling up. */
-.nav-bar__wrap {
+ .nav-bar__wrap {
   transition: transform var(--duration-m) var(--cubic-default);
 }
 .nav[data-nav-hidden] .nav-bar__wrap {
@@ -2586,8 +2560,7 @@ button:focus-visible {
   .nav-bar__wrap { transition-duration: 0s; }
 }
 
-/* Terminal identity details: blinking logo cursor and indexed menu links. */
-.nav-logo__cursor {
+ .nav-logo__cursor {
   display: inline-block;
   animation: nav-cursor-blink 1.1s steps(1, end) infinite;
 }
@@ -2606,8 +2579,7 @@ button:focus-visible {
   vertical-align: 0.1em;
 }
 
-/* Borderless, tonal treatment for the docs shell and shared search dialog. */
-#nd-docs-layout,
+ #nd-docs-layout,
 #nd-page {
   background: var(--surface-page);
 }
@@ -2651,8 +2623,7 @@ button:focus-visible {
   background: var(--surface-raised);
 }
 
-/* Legal routes reuse the marketing shell with a quieter editorial chapter. */
-.legal-shell {
+ .legal-shell {
   min-height: 100vh;
   background: var(--surface-page);
 }
@@ -2917,5 +2888,4 @@ button:focus-visible {
   }
 }
 
-/* The hero cursor stays glued to the final word so it never orphans on wrap. */
-.osmo-home-hero__tail { white-space: nowrap; }
+ .osmo-home-hero__tail { white-space: nowrap; }

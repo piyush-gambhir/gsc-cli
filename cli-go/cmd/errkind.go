@@ -10,13 +10,11 @@ import (
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/client"
 )
 
-// Every failure exits 1, like the rest of the CLI suite. Structured errors add a
-// "kind" so agents can branch without parsing the message.
 const (
-	kindUsage        = "usage"                 // unknown command or flag, bad arguments
-	kindAuth         = "auth"                  // not logged in, or the credentials no longer work
-	kindReadOnly     = "read_only"             // --read-only mode or a read-only scope blocked a write
-	kindConfirmation = "confirmation_required" // destructive command without --yes and no terminal
+	kindUsage        = "usage"
+	kindAuth         = "auth"
+	kindReadOnly     = "read_only"
+	kindConfirmation = "confirmation_required"
 )
 
 type kindError struct {
@@ -34,7 +32,6 @@ func withKind(kind string, err error) error {
 	return &kindError{kind, err}
 }
 
-// errorKind classifies a command error for the structured "kind" field.
 func errorKind(err error) string {
 	var k *kindError
 	var cred *auth.CredentialError
@@ -47,7 +44,7 @@ func errorKind(err error) string {
 		return kindAuth
 	case errors.As(err, &api):
 		switch {
-		case api.Quota(): // includes Google's legacy 403 quota responses
+		case api.Quota():
 			return "rate_limit"
 		case api.Status == 401:
 			return kindAuth
@@ -70,7 +67,7 @@ func errorKind(err error) string {
 			return "timeout"
 		}
 		return "network"
-	case strings.HasPrefix(err.Error(), "unknown command "): // Cobra's root lookup error is untyped
+	case strings.HasPrefix(err.Error(), "unknown command "):
 		return kindUsage
 	}
 	return "error"

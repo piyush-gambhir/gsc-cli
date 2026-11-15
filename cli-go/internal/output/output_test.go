@@ -84,8 +84,6 @@ func TestTableEscapesControlsAndEmpty(t *testing.T) {
 	}
 }
 
-// JSON keeps <, >, and & literal so messages such as "Settings > Users" stay
-// readable; the output is never embedded in HTML.
 func TestJSONDoesNotEscapeHTML(t *testing.T) {
 	var b bytes.Buffer
 	if err := Print(&b, "json", map[string]string{"error": "Settings > Users & <permissions>"}); err != nil {
@@ -96,7 +94,6 @@ func TestJSONDoesNotEscapeHTML(t *testing.T) {
 	}
 }
 
-// HumanColumns narrows terminal tables only; CSV keeps every column and raw values.
 func TestHumanColumnsAndTimestamp(t *testing.T) {
 	tab := Table{Columns: []string{"a", "b", "when"}, Rows: [][]any{{"x", "y", "2026-10-06T22:41:32.720Z"}},
 		Human: map[string]func(any) string{"when": Timestamp}, HumanColumns: []string{"a", "when"}}

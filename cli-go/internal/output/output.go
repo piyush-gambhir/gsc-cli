@@ -17,19 +17,13 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
-// Table is an ordered, row-shaped view of a result. Table output applies the
-// Human formatters (for example CTR as a percentage); CSV prints raw values.
 type Table struct {
-	Columns []string
-	Rows    [][]any
-	Human   map[string]func(any) string
-	// HumanColumns, when set, is the subset of Columns a terminal table shows.
-	// CSV always writes every column.
+	Columns      []string
+	Rows         [][]any
+	Human        map[string]func(any) string
 	HumanColumns []string
 }
 
-// Tabler is implemented by results with a natural row shape. JSON and YAML
-// still serialize the result itself, so envelopes keep their metadata.
 type Tabler interface{ Table() Table }
 
 var ErrNoCSV = errors.New("csv output is only available for row-shaped results; use -o json or -o yaml")
@@ -46,7 +40,7 @@ func Print(w io.Writer, format string, data any) error {
 	case "json":
 		e := json.NewEncoder(w)
 		e.SetIndent("", "  ")
-		e.SetEscapeHTML(false) // keep "<", ">", "&" readable; output is never embedded in HTML
+		e.SetEscapeHTML(false)
 		return e.Encode(data)
 	case "yaml":
 		return printYAML(w, data)
@@ -89,7 +83,6 @@ func Print(w io.Writer, format string, data any) error {
 	return err
 }
 
-// normalize round-trips typed structs through JSON while keeping numbers exact.
 func normalize(data any) (any, error) {
 	b, err := json.Marshal(data)
 	if err != nil {
@@ -127,7 +120,6 @@ func printYAML(w io.Writer, data any) error {
 	return e.Encode(&node)
 }
 
-// genericTable turns a list of objects into a table with sorted columns.
 func genericTable(v any) (Table, bool) {
 	rows, ok := v.([]any)
 	if !ok || len(rows) == 0 {
@@ -160,7 +152,7 @@ func writeTable(w io.Writer, t Table) error {
 		_, err := fmt.Fprintln(w, "No results.")
 		return err
 	}
-	show := make([]int, 0, len(t.Columns)) // indexes of the columns to print
+	show := make([]int, 0, len(t.Columns))
 	for i, c := range t.Columns {
 		if len(t.HumanColumns) == 0 || slices.Contains(t.HumanColumns, c) {
 			show = append(show, i)
@@ -191,7 +183,6 @@ func writeTable(w io.Writer, t Table) error {
 	return tw.Flush()
 }
 
-// WriteCSV writes a table as RFC 4180 CSV with raw values.
 func WriteCSV(w io.Writer, t Table) error {
 	cw := csv.NewWriter(w)
 	if err := cw.Write(t.Columns); err != nil {
@@ -212,9 +203,6 @@ func WriteCSV(w io.Writer, t Table) error {
 	return cw.Error()
 }
 
-// csvCell prints raw values. Text that a spreadsheet would treat as a formula
-// gets a leading apostrophe (OWASP CSV-injection guidance): search queries are
-// attacker-controllable text.
 func csvCell(v any) string {
 	switch x := v.(type) {
 	case nil:
@@ -240,7 +228,6 @@ func csvCell(v any) string {
 	}
 }
 
-// Cell renders a value for a terminal table, replacing control characters.
 func Cell(v any) string {
 	if v == nil {
 		return "-"
@@ -272,7 +259,6 @@ func sortedKeys[V any](m map[string]V) []string {
 	return keys
 }
 
-// Percent formats a ratio such as CTR for tables.
 func Percent(v any) string {
 	f, ok := toFloat(v)
 	if !ok {
@@ -281,7 +267,6 @@ func Percent(v any) string {
 	return strconv.FormatFloat(f*100, 'f', 2, 64) + "%"
 }
 
-// Fixed2 formats a number with two decimals for tables.
 func Fixed2(v any) string {
 	f, ok := toFloat(v)
 	if !ok {
@@ -290,7 +275,6 @@ func Fixed2(v any) string {
 	return strconv.FormatFloat(f, 'f', 2, 64)
 }
 
-// Timestamp shortens an RFC 3339 time to "2006-01-02 15:04" UTC for tables.
 func Timestamp(v any) string {
 	if s, ok := v.(string); ok {
 		if t, err := time.Parse(time.RFC3339, s); err == nil {
@@ -300,7 +284,6 @@ func Timestamp(v any) string {
 	return Cell(v)
 }
 
-// Points formats a value already expressed in percentage points.
 func Points(v any) string {
 	f, ok := toFloat(v)
 	if !ok {

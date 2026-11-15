@@ -14,19 +14,14 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Session supplies access tokens for an OAuth profile, refreshing them when
-// needed. A refresh holds a per-profile file lock across read, refresh, and
-// persist, and re-reads the stored token after acquiring it, so concurrent
-// commands refresh once and never resurrect a profile logged out meanwhile.
 type Session struct {
 	Provider    *Provider
 	Store       secrets.Store
 	ConfigPath  string
 	ProfileName string
 	Profile     config.Profile
-	// ReadOnly keeps refreshed tokens in memory only.
-	ReadOnly bool
-	Now      func() time.Time
+	ReadOnly    bool
+	Now         func() time.Time
 
 	mu     sync.Mutex
 	cached Blob
@@ -68,7 +63,6 @@ func (s *Session) AccessToken(ctx context.Context) (string, error) {
 		return "", err
 	}
 	defer unlock()
-	// Another process may have refreshed while we waited for the lock.
 	if blob, err = LoadBlob(s.Store, s.backend(), s.ProfileName); err != nil {
 		return "", DescribeStoreError(err, s.ProfileName)
 	}
@@ -105,9 +99,6 @@ func (s *Session) AccessToken(ctx context.Context) (string, error) {
 	return next.AccessToken, nil
 }
 
-// sameLogin rejects a stored token from a different login than the profile this
-// command loaded (another process logged in again or out meanwhile), so a token
-// for one account is never paired with another login's site and scopes.
 func (s *Session) sameLogin(b Blob) error {
 	if b.Generation != s.Profile.Generation {
 		return fmt.Errorf("profile %q was replaced or logged out while this command ran; run it again", s.ProfileName)
@@ -115,7 +106,6 @@ func (s *Session) sameLogin(b Blob) error {
 	return nil
 }
 
-// client returns the OAuth client that issued this profile's refresh token.
 func (s *Session) client(blob Blob) (Client, error) {
 	relogin := fmt.Errorf("the OAuth client this profile logged in with (%s) is not available in this build or environment; run gsc auth login --profile %s", s.Profile.ClientID, s.ProfileName)
 	switch s.Profile.Client {
@@ -145,8 +135,6 @@ func (s *Session) persist(ctx context.Context, b Blob) error {
 	}
 	current, ok := cfg.Profiles[s.ProfileName]
 	if !ok || current.Generation != s.Profile.Generation || b.Generation != s.Profile.Generation {
-		// Logged out or replaced by a newer login while we refreshed: keep the
-		// token in memory for this command and write nothing.
 		return nil
 	}
 	if _, err := SaveBlob(ctx, s.Store, s.backend(), s.ProfileName, b); err != nil {
@@ -170,7 +158,6 @@ func (s *Session) lock(ctx context.Context) (func(), error) {
 	return func() { _ = l.Unlock() }, nil
 }
 
-// LockProfile serializes login and logout with refreshes of the same profile.
 func LockProfile(ctx context.Context, configPath, profile string) (func(), error) {
 	s := &Session{ConfigPath: configPath, ProfileName: profile}
 	return s.lock(ctx)

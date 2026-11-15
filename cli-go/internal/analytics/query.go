@@ -11,7 +11,6 @@ import (
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/output"
 )
 
-// Querier runs one Search Analytics request.
 type Querier interface {
 	Query(ctx context.Context, site string, req client.QueryRequest) (*client.QueryResponse, error)
 }
@@ -21,7 +20,6 @@ const (
 	maxPages     = 2000
 )
 
-// Result is the envelope printed for Search Analytics commands.
 type Result struct {
 	Site                string
 	Request             client.QueryRequest
@@ -29,14 +27,10 @@ type Result struct {
 	FirstIncompleteDate string
 	FirstIncompleteHour string
 	MetadataReturned    bool
-	// Complete means the last page was shorter than requested, so every row
-	// Google exposes for this request was fetched. It says nothing about
-	// anonymized queries or data finality.
-	Complete bool
-	Requests int
-	// Rollup describes a local week or month rollup, if one was applied.
-	Rollup string
-	Rows   []client.Row
+	Complete            bool
+	Requests            int
+	Rollup              string
+	Rows                []client.Row
 }
 
 func (r *Result) header() []kv {
@@ -66,7 +60,6 @@ func (r *Result) Table() output.Table {
 	return t
 }
 
-// MetricFormats render metrics for terminal tables.
 var MetricFormats = map[string]func(any) string{
 	"ctr": output.Percent, "ctr_prev": output.Percent, "position": output.Fixed2, "position_prev": output.Fixed2,
 	"position_delta": output.Fixed2, "clicks_pct": output.Percent, "impressions_pct": output.Percent,
@@ -96,8 +89,6 @@ func rowObject(dims []string, row client.Row) json.RawMessage {
 	return object(append(fields, kv{"clicks", row.Clicks}, kv{"impressions", row.Impressions}, kv{"ctr", row.CTR}, kv{"position", row.Position}))
 }
 
-// Fetch pages through a query. limit bounds rows unless all is set; pages
-// are at most 25,000 rows, advanced with startRow.
 func Fetch(ctx context.Context, q Querier, site string, req client.QueryRequest, limit int, all bool, progress func(rows int)) (*Result, error) {
 	if limit <= 0 {
 		limit = DefaultLimit
@@ -136,8 +127,6 @@ func Fetch(ctx context.Context, q Querier, site string, req client.QueryRequest,
 			}
 			lastFirst = resp.Rows[0].Keys
 		}
-		// Google's extraction guide pages until an empty response; a short page
-		// does not prove that no exposed rows remain.
 		if len(resp.Rows) == 0 {
 			res.Complete = true
 			return res, nil
@@ -158,7 +147,6 @@ type kv struct {
 	v any
 }
 
-// object encodes fields as a JSON object in the given order.
 func object(fields []kv) json.RawMessage {
 	var b bytes.Buffer
 	b.WriteByte('{')
@@ -200,5 +188,4 @@ func nonNil(s []string) []string {
 	return s
 }
 
-// RowJSON encodes one row as an ordered JSON object (dimensions, then metrics).
 func RowJSON(dims []string, row client.Row) []byte { return rowObject(dims, row) }

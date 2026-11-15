@@ -27,9 +27,6 @@ func (a *app) auth() *cobra.Command {
 	return c
 }
 
-// loginProfile is --profile, then GSC_PROFILE, then the current profile, then "default".
-// An unreadable config fails here, before the browser opens or a token is
-// stored, rather than silently falling back to "default".
 func (a *app) loginProfile() (string, error) {
 	cfg, _, err := a.loadConfig()
 	if err != nil {
@@ -130,8 +127,6 @@ func (a *app) loginOAuth(ctx context.Context, name string, f loginFlags, scope s
 	if err != nil {
 		return err
 	}
-	// Hold the profile lock only while exchanging and saving, so the follow-up
-	// sites.list (which may refresh) never waits on our own lock.
 	var res *auth.LoginResult
 	var saved secrets.Saved
 	var p config.Profile
@@ -144,8 +139,6 @@ func (a *app) loginOAuth(ctx context.Context, name string, f loginFlags, scope s
 		if err != nil {
 			return err
 		}
-		// Lock only after the browser step, so a slow consent never blocks other
-		// commands that need to refresh this profile.
 		unlock, err := auth.LockProfile(ctx, cfgPath, name)
 		if err != nil {
 			return err
@@ -260,9 +253,6 @@ func (a *app) loginADC(ctx context.Context, name string, f loginFlags, scope str
 	return a.print(map[string]any{"profile": name, "auth": p.Auth, "impersonate": nullIfEmpty(f.impersonate), "site": nullIfEmpty(chosen), "properties": countOrNil(count)})
 }
 
-// replaceProfile saves a profile that stores no secret (service account, ADC)
-// under the profile lock, deleting any OAuth credentials the profile held before
-// so they are not left orphaned in the keychain or secrets file.
 func (a *app) replaceProfile(ctx context.Context, name string, p config.Profile) error {
 	path, err := config.Path()
 	if err != nil {
@@ -277,8 +267,6 @@ func (a *app) replaceProfile(ctx context.Context, name string, p config.Profile)
 	if err != nil {
 		return err
 	}
-	// Save the new profile first: if that fails, the old login stays intact. Only
-	// then delete the replaced OAuth credential.
 	if err := a.saveProfile(ctx, name, p); err != nil {
 		return err
 	}
@@ -306,9 +294,6 @@ func (a *app) saveProfile(ctx context.Context, name string, p config.Profile) er
 	})
 }
 
-// chooseDefaultSite lists properties once after login and stores a default
-// site: the existing one if still accessible, the only property, a picked
-// property (interactive), or the first domain property.
 func (a *app) chooseDefaultSite(ctx context.Context, name string, ts client.TokenSource, existing string) (string, int) {
 	sites, err := a.newClient(ts).ListSites(ctx)
 	if err != nil {
@@ -537,8 +522,6 @@ func (a *app) logout() *cobra.Command {
 				return err
 			}
 			defer unlock()
-			// Re-read under the lock: another login may have replaced the profile
-			// (auth type or storage backend) while we waited.
 			if cfg, err = config.Load(path); err != nil {
 				return err
 			}

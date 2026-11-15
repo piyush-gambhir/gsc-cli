@@ -34,7 +34,6 @@ if [ -z "$expected" ] || [ "$expected" != "$actual" ]; then
   echo 'Checksum verification failed.' >&2
   exit 1
 fi
-# Extract only the expected binary, not arbitrary archive paths.
 tar -xzf "$tmp/$asset" -C "$tmp" gsc
 if [ ! -f "$tmp/gsc" ] || [ -L "$tmp/gsc" ]; then
   echo 'Archive does not contain a regular gsc binary.' >&2
@@ -43,7 +42,6 @@ fi
 mkdir -p "$install_dir"
 install -m 755 "$tmp/gsc" "$install_dir/gsc"
 echo "Installed $install_dir/gsc. Ensure $install_dir is on PATH."
-# Ghostscript and Gambit Scheme also install a binary named gsc.
 other=$(command -v gsc 2>/dev/null || true)
 if [ -n "$other" ] && [ "$other" != "$install_dir/gsc" ]; then
   echo "Warning: $other comes first on PATH (Ghostscript and Gambit Scheme also install gsc). Put $install_dir earlier in PATH or run $install_dir/gsc." >&2

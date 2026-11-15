@@ -11,7 +11,6 @@ builds:
       - -X github.com/piyush-gambhir/gsc-cli/cli-go/internal/build.Version={{.Version}}
       - -X github.com/piyush-gambhir/gsc-cli/cli-go/internal/build.Commit={{.Commit}}
       - -X github.com/piyush-gambhir/gsc-cli/cli-go/internal/build.Date={{.Date}}
-      # Built-in OAuth client from repository secrets; empty in snapshot builds.
       - -X github.com/piyush-gambhir/gsc-cli/cli-go/internal/auth.BuiltinClientID={{ index .Env "GSC_OAUTH_CLIENT_ID" }}
       - -X github.com/piyush-gambhir/gsc-cli/cli-go/internal/auth.BuiltinClientSecret={{ index .Env "GSC_OAUTH_CLIENT_SECRET" }}
 archives:
@@ -28,12 +27,9 @@ sboms:
 checksum:
   name_template: checksums.txt
 release:
-  # The release workflow publishes the draft after attesting the artifacts, so
-  # the release is complete when it becomes visible (and immutable).
   name_template: "Search Console CLI {{ .Tag }}"
   draft: true
   replace_existing_draft: true
-  # Versions with a suffix (v1.0.0-rc.1) are published as pre-releases.
   prerelease: auto
 changelog:
   sort: asc

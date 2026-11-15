@@ -6,8 +6,6 @@ import (
 	"github.com/piyush-gambhir/gsc-cli/cli-go/internal/client"
 )
 
-// sites add reports the permission Google granted instead of assuming the new
-// property is unverified: a URL-prefix under an owned domain is owned at once.
 func TestSitesAddReportsGrantedPermission(t *testing.T) {
 	isolate(t)
 	t.Setenv("GSC_ACCESS_TOKEN", "env-token")

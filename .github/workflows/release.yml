@@ -1,9 +1,4 @@
 name: Release
-# Publishing is driven by cli-go/VERSION: merging a version change into main
-# tags vX.Y.Z on the merge commit, builds with GoReleaser (archives, checksums,
-# SBOMs), attests build provenance, and only then publishes the release. A
-# failed release is recovered by re-running that original run (Re-run jobs),
-# which keeps its commit; an already published version is skipped.
 on:
   push:
     branches: [main]
@@ -16,16 +11,15 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release:
-    # Releases only ever come from protected main, including manual reruns.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
-      contents: write # create the tag and the release
-      id-token: write # sign build-provenance attestations
+      contents: write
+      id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -53,7 +47,7 @@ jobs:
             exit 1
           fi
           echo "publish=true" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
         if: steps.version.outputs.publish == 'true'
         with:
           go-version-file: cli-go/go.mod
@@ -76,25 +70,24 @@ jobs:
             gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA" >/dev/null
             git tag "$TAG" "$GITHUB_SHA"
           fi
-      - uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+      - uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
         if: steps.version.outputs.publish == 'true'
         with:
           syft-version: v1.55.0
       - name: Build and upload a draft release
         if: steps.version.outputs.publish == 'true'
-        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de
         with:
           distribution: goreleaser
           version: v2.18.3
           args: release --clean --config cli-go/.goreleaser.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Built-in OAuth client for one-command login; see docs/auth.md. Empty until the secrets exist.
           GSC_OAUTH_CLIENT_ID: ${{ secrets.GSC_OAUTH_CLIENT_ID }}
           GSC_OAUTH_CLIENT_SECRET: ${{ secrets.GSC_OAUTH_CLIENT_SECRET }}
       - name: Attest build provenance
         if: steps.version.outputs.publish == 'true'
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8
         with:
           subject-checksums: dist/checksums.txt
       - name: Publish the release

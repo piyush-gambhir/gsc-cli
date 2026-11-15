@@ -6,10 +6,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// examples fills in help examples for commands whose constructors do not set
-// one. It is keyed by command path because some constructors back several
-// commands (auth status is also config show and status), and each needs
-// examples that name the command being read.
 var examples = map[string][]string{
 	"gsc auth list":                  {"gsc auth list", "gsc auth list -o json"},
 	"gsc auth logout":                {"gsc auth logout", "gsc auth logout --profile work --revoke --yes"},

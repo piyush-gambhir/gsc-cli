@@ -15,10 +15,8 @@ import (
 )
 
 type LoginOptions struct {
-	Client Client
-	// Scopes requested in addition to openid and email.
-	Scopes []string
-	// Paste switches to the headless flow: the redirected URL is read here.
+	Client      Client
+	Scopes      []string
 	Paste       io.Reader
 	OpenBrowser func(string) error
 	Log         io.Writer
@@ -32,8 +30,6 @@ type LoginResult struct {
 	Scopes  []string
 }
 
-// Login runs the browser (or paste) authorization-code flow with PKCE and
-// exchanges the code for tokens.
 func (p *Provider) Login(ctx context.Context, o LoginOptions) (*LoginResult, error) {
 	scopes := append([]string{"openid", "email"}, o.Scopes...)
 	verifier := oauth2.GenerateVerifier()
@@ -85,11 +81,8 @@ func hasScope(scopes []string, want string) bool {
 	return false
 }
 
-// HasWriteScope reports whether granted scopes allow write methods.
 func HasWriteScope(scopes []string) bool { return hasScope(scopes, ScopeFull) }
 
-// Revoke revokes a token at Google. Revoking ends the user's grant for every
-// client in the OAuth client's Google Cloud project.
 func (p *Provider) Revoke(ctx context.Context, token string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, p.RevokeURL, strings.NewReader(url.Values{"token": {token}}.Encode()))
 	if err != nil {
@@ -102,7 +95,6 @@ func (p *Provider) Revoke(ctx context.Context, token string) error {
 	}
 	defer res.Body.Close()
 	_, _ = io.Copy(io.Discard, io.LimitReader(res.Body, 1<<16))
-	// 400 invalid_token means it was already revoked or expired: nothing left to revoke.
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusBadRequest {
 		return fmt.Errorf("Google revoke endpoint returned HTTP %d", res.StatusCode)
 	}

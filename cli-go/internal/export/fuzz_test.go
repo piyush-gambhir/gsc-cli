@@ -7,10 +7,6 @@ import (
 	"testing"
 )
 
-// FuzzLoadManifest checks the resume manifest decoder on arbitrary file
-// contents: it never panics, always returns a usable day map, and a manifest it
-// accepts survives a save and reload unchanged.
-// `go test -run=^$ -fuzz=FuzzLoadManifest ./internal/export` explores further.
 func FuzzLoadManifest(f *testing.F) {
 	f.Add([]byte(`{"version":1,"request_hash":"abc","site":"sc-domain:example.com","request":{"startDate":"","endDate":"","dimensions":["date","query"]},"format":"csv","days":{"2026-10-01":{"file":"2026-10-01.csv","rows":2,"complete":true,"preliminary":false,"requests":1}}}`))
 	f.Add([]byte(`null`))

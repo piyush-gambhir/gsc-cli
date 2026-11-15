@@ -1,7 +1,3 @@
-// Package auth obtains Google access tokens for every supported credential
-// type: browser OAuth (built-in, env-provided, or bring-your-own client),
-// service accounts, Application Default Credentials, impersonation, and raw
-// access tokens.
 package auth
 
 import (
@@ -20,10 +16,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Built-in OAuth client, injected into release builds with -ldflags -X.
-// Empty in source: Google forbids committing client credentials to public
-// repositories. Desktop-app secrets are not confidential (PKCE protects the
-// flow), so shipping them in the binary follows Google's installed-app model.
 var (
 	BuiltinClientID     string
 	BuiltinClientSecret string
@@ -35,8 +27,6 @@ const (
 	scopeCloud    = "https://www.googleapis.com/auth/cloud-platform"
 )
 
-// Provider holds Google's endpoints and the HTTP client used to reach them.
-// Tests replace the endpoints with local fakes.
 type Provider struct {
 	Endpoint  oauth2.Endpoint
 	RevokeURL string
@@ -46,8 +36,6 @@ type Provider struct {
 
 func DefaultProvider(h *http.Client) *Provider {
 	return &Provider{
-		// AuthStyleInParams: x/oauth2 otherwise probes header auth first and
-		// silently retries with a second token request.
 		Endpoint: oauth2.Endpoint{
 			AuthURL:   "https://accounts.google.com/o/oauth2/v2/auth",
 			TokenURL:  "https://oauth2.googleapis.com/token",
@@ -63,15 +51,12 @@ func (p *Provider) ctx(ctx context.Context) context.Context {
 	return context.WithValue(ctx, oauth2.HTTPClient, p.HTTP)
 }
 
-// Client is an OAuth client identity and where it came from.
 type Client struct {
 	ID, Secret, Source string
 }
 
-// ErrNoClient means neither a built-in client nor GSC_CLIENT_ID is available.
 var ErrNoClient = errors.New("this build has no built-in OAuth client. Set GSC_CLIENT_ID and GSC_CLIENT_SECRET to a Desktop OAuth client, use --client-secret-file, or see docs/auth.md")
 
-// ResolveClient picks the env override, else the built-in client.
 func ResolveClient() (Client, error) {
 	id, secret := os.Getenv("GSC_CLIENT_ID"), os.Getenv("GSC_CLIENT_SECRET")
 	if id != "" || secret != "" {
@@ -86,8 +71,6 @@ func ResolveClient() (Client, error) {
 	return Client{}, ErrNoClient
 }
 
-// ClientFromSecretFile reads the JSON Google Cloud Console downloads for a
-// Desktop ("installed") OAuth client.
 func ClientFromSecretFile(path string) (Client, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -115,7 +98,6 @@ func ClientFromSecretFile(path string) (Client, error) {
 	return Client{ID: f.Installed.ClientID, Secret: f.Installed.ClientSecret, Source: "custom"}, nil
 }
 
-// Blob is what a profile keeps in the secret store.
 type Blob struct {
 	RefreshToken string    `json:"refresh_token,omitempty"`
 	AccessToken  string    `json:"access_token,omitempty"`
@@ -148,9 +130,6 @@ func SaveBlob(ctx context.Context, s secrets.Store, backend secrets.Backend, key
 	return s.Save(ctx, key, string(raw), backend, false)
 }
 
-// DescribeStoreError turns a keychain failure into a user-facing message that
-// distinguishes a missing service, a locked or unresponsive keychain, and a
-// missing item.
 func DescribeStoreError(err error, profile string) error {
 	switch {
 	case err == nil:
@@ -164,15 +143,11 @@ func DescribeStoreError(err error, profile string) error {
 	}
 }
 
-// IDClaims are the identity fields Login reads from Google's ID token.
 type IDClaims struct {
 	Email string `json:"email"`
 	Sub   string `json:"sub"`
 }
 
-// ParseIDToken decodes an ID token payload. The token came straight from
-// Google's token endpoint over TLS, so OpenID Connect allows skipping the
-// signature check; the claims are only used for display and grant tracking.
 func ParseIDToken(tok string) (IDClaims, error) {
 	parts := strings.Split(tok, ".")
 	if len(parts) != 3 {
@@ -189,7 +164,6 @@ func ParseIDToken(tok string) (IDClaims, error) {
 	return c, nil
 }
 
-// TokenSource adapts an oauth2.TokenSource to client.TokenSource.
 type TokenSource struct{ TS oauth2.TokenSource }
 
 func (t TokenSource) AccessToken(context.Context) (string, error) {
@@ -200,18 +174,12 @@ func (t TokenSource) AccessToken(context.Context) (string, error) {
 	return tok.AccessToken, nil
 }
 
-// Static is a fixed access token from GSC_ACCESS_TOKEN or --access-token.
 type Static string
 
 func (s Static) AccessToken(context.Context) (string, error) { return string(s), nil }
 
-// credentialLike matches token-shaped text: JWTs, Google access and refresh
-// tokens, and long opaque strings.
 var credentialLike = regexp.MustCompile(`eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]*)?|ya29\.[A-Za-z0-9_.-]+|1//[A-Za-z0-9_-]+|[A-Za-z0-9_+/=-]{40,}`)
 
-// scrubCredentials removes token-shaped text and caps length, so errors from
-// credential sources (for example an external-account helper echoing its
-// response) cannot print a token.
 func scrubCredentials(s string) string {
 	s = credentialLike.ReplaceAllString(s, "[REDACTED]")
 	if r := []rune(s); len(r) > 400 {
@@ -220,8 +188,6 @@ func scrubCredentials(s string) string {
 	return s
 }
 
-// CredentialError means no token could be obtained: a revoked or expired grant,
-// an unusable key, or a failed impersonation. Callers report it as an auth failure.
 type CredentialError struct{ msg string }
 
 func (e *CredentialError) Error() string { return e.msg }
@@ -241,7 +207,6 @@ func friendlyTokenError(err error) error {
 		}
 		return &CredentialError{"token request failed: " + desc}
 	}
-	// Return bare context errors: a wrapped one could carry credential text.
 	if errors.Is(err, context.Canceled) {
 		return context.Canceled
 	}

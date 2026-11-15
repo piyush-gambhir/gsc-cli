@@ -1,7 +1,3 @@
-// Package secrets stores credentials in the operating system keychain and
-// falls back to an owner-only YAML file when no keychain service exists (for
-// example a Linux server without Secret Service). Callers record which backend
-// holds each secret so later reads go to the same place.
 package secrets
 
 import (
@@ -31,21 +27,14 @@ var ErrNotFound = errors.New("secret not found")
 
 var errAbandoned = errors.New("keychain call abandoned after its caller timed out")
 
-// Store addresses one CLI's secrets: Service names the keychain entries and
-// FilePath is the fallback file (mode 0600). Timeout bounds each keychain call,
-// default 10s, so a locked keychain waiting on an unlock prompt cannot hang a
-// non-interactive run.
 type Store struct {
 	Service  string
 	FilePath string
 	Timeout  time.Duration
 }
 
-// keychainMu allows one keychain operation at a time per process: some
-// backends (and go-keyring's test mock) are not safe for concurrent use.
 var keychainMu sync.Mutex
 
-// keychain runs one keychain operation under the store's timeout.
 func (s Store) keychain(op func() error) error {
 	timeout := s.Timeout
 	if timeout == 0 {
@@ -56,8 +45,6 @@ func (s Store) keychain(op func() error) error {
 	go func() {
 		keychainMu.Lock()
 		defer keychainMu.Unlock()
-		// A call still queued when its caller gave up must not run later (for
-		// example after the caller released its profile lock).
 		if abandoned.Load() {
 			done <- errAbandoned
 			return
@@ -73,11 +60,6 @@ func (s Store) keychain(op func() error) error {
 	}
 }
 
-// ServiceFor names the keychain service for one configuration file. The default
-// configuration keeps the plain base name; any other path (GSC_CONFIG,
-// XDG_CONFIG_HOME, a per-environment directory) gets a short hash suffix, so
-// profiles with the same name in different configurations never share
-// keychain entries.
 func ServiceFor(base, configPath, defaultPath string) string {
 	if configPath == "" || filepath.Clean(configPath) == filepath.Clean(defaultPath) {
 		return base
@@ -90,15 +72,11 @@ func ServiceFor(base, configPath, defaultPath string) string {
 	return fmt.Sprintf("%s (%x)", base, sum[:4])
 }
 
-// Saved reports where Save put a secret.
 type Saved struct {
-	Backend Backend
-	// FallbackReason is the keychain error that caused a File fallback, if any.
+	Backend        Backend
 	FallbackReason error
 }
 
-// Save stores value under key. With prefer set to File, or when the keychain
-// is unavailable and allowFallback is true, the file backend is used.
 func (s Store) Save(ctx context.Context, key, value string, prefer Backend, allowFallback bool) (Saved, error) {
 	put := func(m map[string]string) { m[key] = value }
 	if prefer == File {
@@ -117,7 +95,6 @@ func (s Store) Save(ctx context.Context, key, value string, prefer Backend, allo
 	return Saved{Backend: File, FallbackReason: err}, nil
 }
 
-// Load reads key from the backend that Save reported.
 func (s Store) Load(backend Backend, key string) (string, error) {
 	switch backend {
 	case Keychain:
@@ -145,7 +122,6 @@ func (s Store) Load(backend Backend, key string) (string, error) {
 	}
 }
 
-// Delete removes key from backend. A missing secret is not an error.
 func (s Store) Delete(ctx context.Context, backend Backend, key string) error {
 	switch backend {
 	case Keychain:
@@ -170,7 +146,6 @@ func (s Store) fileRead() (map[string]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read secrets file: %w", err)
 	}
-	// Never echo parser errors: the file contains credentials.
 	if err := yaml.Unmarshal(b, &m); err != nil {
 		return nil, fmt.Errorf("invalid secrets file at %s", s.FilePath)
 	}

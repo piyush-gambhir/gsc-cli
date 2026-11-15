@@ -121,7 +121,6 @@ func (a *app) doctor() *cobra.Command {
 	return c
 }
 
-// otherBinaries lists executables named name on PATH other than this one.
 func otherBinaries(name string) []string {
 	self, _ := os.Executable()
 	self, _ = filepath.EvalSymlinks(self)

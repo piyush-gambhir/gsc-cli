@@ -1,6 +1,3 @@
-// Package config stores named profiles in an XDG YAML file. Profiles hold
-// metadata only; credentials live in the OS keychain (internal/secrets) unless
-// a profile was created with --insecure-storage.
 package config
 
 import (
@@ -15,50 +12,36 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
-// Authentication types a profile can use.
 const (
 	AuthOAuth          = "oauth"
 	AuthServiceAccount = "service_account"
 	AuthADC            = "adc"
 )
 
-// OAuth client sources recorded at login, so refreshes reuse the same client.
 const (
 	ClientBuiltin = "builtin"
 	ClientEnv     = "env"
 	ClientCustom  = "custom"
 )
 
-// Token stores.
 const (
 	StoreKeychain = "keychain"
 	StoreFile     = "file"
 )
 
 type Profile struct {
-	Auth string `yaml:"auth"`
-	// Account is the signed-in Google email (display only); AccountID is the
-	// stable Google subject identifier from the ID token.
-	Account   string `yaml:"account,omitempty"`
-	AccountID string `yaml:"account_id,omitempty"`
-	// Client records which OAuth client issued the refresh token.
-	Client   string   `yaml:"client,omitempty"`
-	ClientID string   `yaml:"client_id,omitempty"`
-	Scopes   []string `yaml:"scopes,omitempty"`
-	// TokenStore is where the profile's secret blob lives.
-	TokenStore string `yaml:"token_store,omitempty"`
-	// KeyFile is a service account JSON key path; Subject is the Workspace
-	// user for domain-wide delegation.
-	KeyFile string `yaml:"key_file,omitempty"`
-	Subject string `yaml:"subject,omitempty"`
-	// Impersonate is a service account email impersonated through the IAM
-	// Credentials API, using ADC as the base identity.
-	Impersonate string `yaml:"impersonate,omitempty"`
-	// Site is the default property for site-scoped commands.
-	Site string `yaml:"site,omitempty"`
-	// Generation changes on every login so a slow refresh in another process
-	// cannot overwrite credentials saved by a newer login.
-	Generation string `yaml:"generation,omitempty"`
+	Auth        string   `yaml:"auth"`
+	Account     string   `yaml:"account,omitempty"`
+	AccountID   string   `yaml:"account_id,omitempty"`
+	Client      string   `yaml:"client,omitempty"`
+	ClientID    string   `yaml:"client_id,omitempty"`
+	Scopes      []string `yaml:"scopes,omitempty"`
+	TokenStore  string   `yaml:"token_store,omitempty"`
+	KeyFile     string   `yaml:"key_file,omitempty"`
+	Subject     string   `yaml:"subject,omitempty"`
+	Impersonate string   `yaml:"impersonate,omitempty"`
+	Site        string   `yaml:"site,omitempty"`
+	Generation  string   `yaml:"generation,omitempty"`
 }
 
 type Config struct {
@@ -66,8 +49,6 @@ type Config struct {
 	Profiles       map[string]Profile `yaml:"profiles"`
 }
 
-// DefaultPath is the configuration path when neither GSC_CONFIG nor
-// XDG_CONFIG_HOME is set.
 func DefaultPath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -76,7 +57,6 @@ func DefaultPath() (string, error) {
 	return filepath.Join(home, ".config", "gsc-cli", "config.yaml"), nil
 }
 
-// Path returns the config file path: GSC_CONFIG, else $XDG_CONFIG_HOME/gsc-cli/config.yaml.
 func Path() (string, error) {
 	if path := os.Getenv("GSC_CONFIG"); path != "" {
 		return path, nil
@@ -92,7 +72,6 @@ func Path() (string, error) {
 	return filepath.Join(base, "gsc-cli", "config.yaml"), nil
 }
 
-// Dir is the directory holding the config, the opt-in secrets file, and locks.
 func Dir() (string, error) {
 	p, err := Path()
 	if err != nil {
@@ -110,7 +89,6 @@ func Load(path string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read config: %w", err)
 	}
-	// Do not echo YAML parser errors: malformed lines can contain credentials.
 	if err := yaml.Unmarshal(b, c); err != nil {
 		return nil, fmt.Errorf("invalid YAML config at %s", path)
 	}
@@ -152,8 +130,6 @@ func Update(ctx context.Context, path string, mutate func(*Config) error) error 
 	return atomicWrite(path, b)
 }
 
-// SelectProfile resolves the profile name: flag, then GSC_PROFILE, then the
-// saved current profile.
 func (c *Config) SelectProfile(flag string) string {
 	if flag != "" {
 		return flag
@@ -164,7 +140,6 @@ func (c *Config) SelectProfile(flag string) string {
 	return c.CurrentProfile
 }
 
-// ValidName rejects names that would be awkward as keychain keys or YAML keys.
 func ValidName(name string) error {
 	if name == "" || strings.TrimSpace(name) != name || strings.ContainsAny(name, "\r\n\t/\\") {
 		return fmt.Errorf("profile name must be nonempty, without surrounding whitespace, slashes, or control characters")
