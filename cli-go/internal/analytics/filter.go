@@ -10,6 +10,8 @@ import (
 
 var Dimensions = []string{"date", "hour", "query", "page", "country", "device", "searchAppearance"}
 
+var filterListDimensions = []string{"country", "device"}
+
 var filterDimensions = []string{"query", "page", "country", "device", "searchAppearance"}
 
 var Operators = []struct{ Token, API string }{

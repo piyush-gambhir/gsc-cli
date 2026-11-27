@@ -26,7 +26,7 @@ those arguments would run, its effect, and whether it prints a credential. The f
 - `--compare` returns `null` for rows missing from one period; treat that as unknown, not zero.
   `insights new-queries` and `lost-queries` describe exposure within the fetched rows, not rankings.
 - `gsc inspect` reports Google's indexed version, not a live test, and cannot request indexing. It costs
-  quota (2,000 per property per day); inspect only the URLs you need and use `--max`.
+  quota (2,000 per property per day); inspect only the URLs you need and use `--max`. It prints its full report on stdout even when it exits 1 because some URLs failed.
 - Search Analytics has unpublished load quotas. Prefer narrower date ranges and avoid grouping by page and
   query together over long ranges. Do not retry quota errors in a loop.
 - Writes (`sites add/remove`, `sitemaps submit/delete`) need the user's explicit request; use `--dry-run`

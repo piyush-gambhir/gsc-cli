@@ -12,8 +12,8 @@ const insightFetchLimit = 25000
 func (a *app) insights() *cobra.Command {
 	c := &cobra.Command{Use: "insights", Short: "Opportunities computed locally from explicit queries (thresholds are printed)",
 		Long: "Each insight runs ordinary Search Analytics queries and computes the result locally. The thresholds used\n" +
-			"are printed on stderr and included in JSON output. Results reflect rows Google exposes; anonymized queries\n" +
-			"are never included."}
+			"are printed on stderr and included in JSON output. Each period reads at most the top 25,000 rows by clicks,\n" +
+			"with a warning when Google has more; anonymized queries are never included."}
 	c.AddCommand(a.insightStriking(), a.insightLowCTR(), a.insightCannibalization(), a.insightDecliners(),
 		a.insightExposure("new-queries", "new"), a.insightExposure("lost-queries", "lost"))
 	return c
@@ -21,6 +21,11 @@ func (a *app) insights() *cobra.Command {
 
 func (a *app) emitInsight(in *analytics.Insight) error {
 	a.info("%s", in.Describe())
+	for _, s := range in.Sources {
+		if !s.Complete {
+			a.warn("fetched the top %d rows by clicks for %s..%s and Google may have more; lower-click rows are not in this insight", len(s.Rows), s.Request.StartDate, s.Request.EndDate)
+		}
+	}
 	return a.print(in)
 }
 

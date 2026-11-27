@@ -74,6 +74,17 @@ func Normalize(req *client.QueryRequest, today Date) ([]string, error) {
 		if g.GroupType != "" && !strings.EqualFold(g.GroupType, "and") {
 			return nil, fmt.Errorf("filter groupType %q is not supported; Search Console only accepts \"and\"", g.GroupType)
 		}
+		for li := range g.FilterLists {
+			l := &g.FilterLists[li]
+			c, ok := CanonicalDimension(l.Dimension, filterListDimensions)
+			if !ok {
+				return nil, fmt.Errorf("filterLists only supports the %s dimensions, not %q", strings.Join(filterListDimensions, " and "), l.Dimension)
+			}
+			l.Dimension = c
+			if len(l.Expressions) == 0 || len(l.Expressions) > 1000 {
+				return nil, fmt.Errorf("a filterLists entry needs between 1 and 1000 expressions")
+			}
+		}
 		for fi := range g.Filters {
 			f := &g.Filters[fi]
 			c, ok := CanonicalDimension(f.Dimension, filterDimensions)

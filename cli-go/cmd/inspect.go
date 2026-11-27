@@ -62,7 +62,8 @@ func (a *app) inspect() *cobra.Command {
 	c := &cobra.Command{Use: "inspect [URL...]", Short: "URL Inspection: Google's indexed view of URLs (not a live test)",
 		Long: "Calls the URL Inspection API for each URL. It reports the indexed version only: there is no live test and\n" +
 			"no request-indexing in the API. Google allows 2,000 inspections per property per day and 600 per minute;\n" +
-			"batches are paced below that and stop cleanly when a quota is reached.",
+			"batches are paced below that and stop cleanly when a quota is reached. The full report is printed on stdout\n" +
+			"even when the command exits 1 because some URLs failed.",
 		Example: "  gsc inspect https://www.example.com/pricing\n  gsc inspect --file urls.txt -o json\n  cat urls.txt | gsc inspect --file - --max 200",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
@@ -100,7 +101,7 @@ func (a *app) inspect() *cobra.Command {
 			}
 			report := &inspectReport{Site: site, Requested: len(urls), Results: []inspection{},
 				Note: "Indexed version as last crawled by Google; not a live test."}
-			var stopErr error
+			var stopErr, firstErr error
 			for i, u := range urls {
 				if i > 0 && interval > 0 {
 					if err := a.wait(ctx, interval); err != nil {
@@ -117,6 +118,9 @@ func (a *app) inspect() *cobra.Command {
 						break
 					}
 					report.Results = append(report.Results, inspection{URL: u, Error: err.Error()})
+					if firstErr == nil {
+						firstErr = err
+					}
 					continue
 				}
 				report.Results = append(report.Results, inspection{URL: u, Result: res})
@@ -130,6 +134,9 @@ func (a *app) inspect() *cobra.Command {
 			}
 			if stopErr != nil {
 				return fmt.Errorf("stopped after %d of %d URLs: %w", report.Inspected, len(urls), stopErr)
+			}
+			if firstErr != nil {
+				return fmt.Errorf("%d of %d URLs failed; first error: %w", len(urls)-report.Inspected, len(urls), firstErr)
 			}
 			return nil
 		}}

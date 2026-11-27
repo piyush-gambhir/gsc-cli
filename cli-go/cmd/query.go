@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"slices"
 	"strings"
@@ -82,7 +83,17 @@ func (a *app) buildSpec(cmd *cobra.Command, q *queryFlags) (*spec, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err := json.Unmarshal(b, &sp.req); err != nil {
+		dec := json.NewDecoder(bytes.NewReader(b))
+		dec.DisallowUnknownFields()
+		if err = dec.Decode(&sp.req); err == nil {
+			if _, tokErr := dec.Token(); tokErr != io.EOF {
+				err = errors.New("unexpected data after the JSON body")
+			}
+		}
+		if err != nil {
+			if strings.Contains(err.Error(), `unknown field "searchType"`) {
+				return nil, errors.New(`--request-file is not a valid searchAnalytics.query JSON body: searchType is deprecated; use "type"`)
+			}
 			return nil, fmt.Errorf("--request-file is not a valid searchAnalytics.query JSON body: %v", err)
 		}
 	}
@@ -127,8 +138,10 @@ func (a *app) buildSpec(cmd *cobra.Command, q *queryFlags) (*spec, error) {
 		}
 	case q.last != "":
 		sp.last, sp.end = q.last, q.end
+	case q.end != "" && sp.req.StartDate == "":
+		sp.last, sp.end = orDefault(q.defaultLast, "28d"), q.end
 	case q.end != "":
-		return nil, errors.New("--end needs --start or --last")
+		sp.req.EndDate = q.end
 	case sp.req.StartDate == "":
 		sp.last = orDefault(q.defaultLast, "28d")
 	}
