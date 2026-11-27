@@ -19,8 +19,14 @@ type QueryRequest struct {
 }
 
 type FilterGroup struct {
-	GroupType string   `json:"groupType,omitempty"`
-	Filters   []Filter `json:"filters"`
+	GroupType   string       `json:"groupType,omitempty"`
+	Filters     []Filter     `json:"filters,omitempty"`
+	FilterLists []FilterList `json:"filterLists,omitempty"`
+}
+
+type FilterList struct {
+	Dimension   string   `json:"dimension"`
+	Expressions []string `json:"expressions"`
 }
 
 type Filter struct {

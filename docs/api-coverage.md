@@ -32,7 +32,8 @@ full `webmasters` scope.
 Every request field of `searchanalytics.query` is reachable from `gsc query`: dimensions (`date`, `hour`,
 `query`, `page`, `country`, `device`, `searchAppearance`), `type`, `dataState` (`final`, `all`,
 `hourly_all`), `aggregationType`, `dimensionFilterGroups` with all six operators, `rowLimit`, and
-`startRow` (pagination). `--request-file` accepts a raw body for anything flags do not express.
+`startRow` (pagination). `--request-file` accepts a raw body for anything flags do not express, and rejects
+fields gsc does not send (such as the deprecated `searchType`; use `type`) instead of dropping them.
 
 `gsc api METHOD PATH` can call any of these methods directly, and any method Google adds later.
 `gsc api methods -o json` prints this table offline (method, HTTP verb, path, read or write effect, status,

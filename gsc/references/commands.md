@@ -421,8 +421,8 @@ gsc freshness [flags]
 Opportunities computed locally from explicit queries (thresholds are printed)
 
 Each insight runs ordinary Search Analytics queries and computes the result locally. The thresholds used
-are printed on stderr and included in JSON output. Results reflect rows Google exposes; anonymized queries
-are never included.
+are printed on stderr and included in JSON output. Each period reads at most the top 25,000 rows by clicks,
+with a warning when Google has more; anonymized queries are never included.
 
 ```text
 gsc insights [flags]
@@ -602,7 +602,8 @@ URL Inspection: Google's indexed view of URLs (not a live test)
 
 Calls the URL Inspection API for each URL. It reports the indexed version only: there is no live test and
 no request-indexing in the API. Google allows 2,000 inspections per property per day and 600 per minute;
-batches are paced below that and stop cleanly when a quota is reached.
+batches are paced below that and stop cleanly when a quota is reached. The full report is printed on stdout
+even when the command exits 1 because some URLs failed.
 
 ```text
 gsc inspect [URL...] [flags]

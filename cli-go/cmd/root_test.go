@@ -512,6 +512,51 @@ func TestInspectBatchStopsOnQuota(t *testing.T) {
 	}
 }
 
+func TestInspectFailedURLsExitNonZero(t *testing.T) {
+	isolate(t)
+	t.Setenv("GSC_ACCESS_TOKEN", "env-token")
+	f := newFake(t)
+	f.inspect = func(u string) (int, string) {
+		if strings.HasSuffix(u, "/ok") {
+			return 200, `{"inspectionResult":{"indexStatusResult":{"verdict":"PASS"}}}`
+		}
+		return 403, `{"error":{"code":403,"message":"You do not own this site, or the inspected URL is not part of this property."}}`
+	}
+	r := cli(t, f, now, "", "inspect", "-s", "sc-domain:example.com", "https://other.example/page", "-o", "json")
+	var e map[string]any
+	if r.code != 1 || json.Unmarshal([]byte(r.errOut), &e) != nil || e["kind"] != "permission" || !strings.Contains(e["error"].(string), "1 of 1 URLs failed") {
+		t.Fatalf("a failed inspection must exit 1 with a kind: %d %q", r.code, r.errOut)
+	}
+	if m := decode(t, r.out); m["inspected"] != 0.0 || len(m["results"].([]any)) != 1 {
+		t.Fatalf("the report must still be printed: %v", m)
+	}
+	r = cli(t, f, now, "", "inspect", "-s", "sc-domain:example.com", "https://example.com/ok", "https://other.example/page", "-o", "json")
+	if r.code != 1 || !strings.Contains(r.errOut, "1 of 2 URLs failed") || decode(t, r.out)["inspected"] != 1.0 {
+		t.Fatalf("partial batch: %d %s %s", r.code, r.out, r.errOut)
+	}
+}
+
+func TestInsightWarnsWhenRowsAreCut(t *testing.T) {
+	isolate(t)
+	t.Setenv("GSC_ACCESS_TOKEN", "env-token")
+	f := newFake(t)
+	f.query = func(req client.QueryRequest) client.QueryResponse {
+		rows := make([]client.Row, insightFetchLimit)
+		for i := range rows {
+			rows[i] = client.Row{Keys: []string{fmt.Sprintf("q%d", i)}, Impressions: 200, Position: 9}
+		}
+		return client.QueryResponse{Rows: rows}
+	}
+	args := []string{"insights", "striking-distance", "-s", "sc-domain:example.com", "--start", "2026-09-01", "--end", "2026-09-30", "-o", "csv"}
+	if r := cli(t, f, now, "", args...); r.code != 0 || !strings.Contains(r.errOut, "fetched the top 25000 rows by clicks for 2026-09-01..2026-09-30") {
+		t.Fatalf("truncated source not reported: %d %s", r.code, r.errOut)
+	}
+	f.query = nil
+	if r := cli(t, f, now, "", args...); r.code != 0 || strings.Contains(r.errOut, "fetched the top") {
+		t.Fatalf("complete source reported as cut: %d %s", r.code, r.errOut)
+	}
+}
+
 func TestAPICommand(t *testing.T) {
 	isolate(t)
 	t.Setenv("GSC_ACCESS_TOKEN", "env-token")
